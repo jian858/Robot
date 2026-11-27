@@ -757,8 +757,8 @@ fetch("/api/status").then(async r => {
   const count = Array.isArray(status.providers) ? status.providers.length : 0;
   const storage = status.persistence ? " • saved to Supabase" : " • " + status.database;
   const workerSetup = status.backgroundWorkerSetup ? " • " + status.backgroundWorkerSetup : "";
-  nowEl.textContent = `${count} AI provider${count === 1 ? "" : "s"} configured • ${R.length} robots moving${storage}${workerSetup}`;
-}).catch(err => { nowEl.textContent = `Office animation is running • AI connection: ${err.message}`; });
+  nowEl.textContent = `NO-AI MODE active • rule-based workers • ${R.length} robots moving${storage}${workerSetup}`;
+}).catch(err => { nowEl.textContent = `Office animation is running • status check: ${err.message}`; });
 R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
 requestAnimationFrame(tick);
 </script>
