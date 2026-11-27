@@ -1,18 +1,499 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Robot Office AI</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robot office</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark;--bg:#0c1220;--panel:#151f32;--line:#293750;--text:#eef4ff;--muted:#9aabc4}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui}main{max-width:950px;margin:32px auto;padding:20px}.top,.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:16px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center}h1{margin:0 0 6px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.robot{padding:14px;border:1px solid var(--line);border-radius:12px;background:#101a2b}.robot b{display:block;margin-bottom:5px}select,textarea,button{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);background:#0d1728;color:var(--text)}textarea{width:100%;min-height:125px;margin:12px 0;resize:vertical}button{background:#2856a5;border:0;font-weight:650;cursor:pointer}button:disabled{opacity:.5;cursor:wait}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.result{white-space:pre-wrap;line-height:1.6}.status{font-size:13px;color:var(--muted)}.pill{border:1px solid var(--line);border-radius:99px;padding:5px 9px;font-size:12px}
-</style></head><body><main>
-<section class="top"><div><h1>Robot Office AI</h1><div class="muted">Eight specialist robots • OpenAI • Gemini • Groq • Mistral • Cloudflare</div></div><span class="pill" id="connection">Checking providers…</span></section>
-<section class="panel"><h2>Robot team</h2><div class="grid">
-<div class="robot"><b>Boss</b><span class="muted">OpenAI first • task manager</span></div><div class="robot"><b>Researcher</b><span class="muted">Gemini first • fact finding</span></div><div class="robot"><b>Coder</b><span class="muted">Groq first • programming</span></div><div class="robot"><b>Editor</b><span class="muted">Mistral first • polishing</span></div><div class="robot"><b>Analyst</b><span class="muted">Groq first • data analysis</span></div><div class="robot"><b>Writer</b><span class="muted">OpenAI first • drafting</span></div><div class="robot"><b>Reviewer</b><span class="muted">Gemini first • quality check</span></div><div class="robot"><b>Tester</b><span class="muted">Cloudflare first • test plans</span></div>
-</div><p class="status">If a robot's preferred provider is unavailable, it automatically tries another configured provider.</p></section>
-<section class="panel"><h2>Give a robot a task</h2><div class="row"><label for="agent">Choose robot</label><select id="agent"><option value="boss">Boss</option><option value="researcher">Researcher</option><option value="coder">Coder</option><option value="editor">Editor</option><option value="analyst">Analyst</option><option value="writer">Writer</option><option value="reviewer">Reviewer</option><option value="tester">Tester</option></select></div>
-<textarea id="task" maxlength="12000" placeholder="Describe what you want the robot to do…"></textarea><button id="run">Run robot</button><p id="meta" class="status"></p><hr style="border-color:var(--line);margin:20px 0"><div id="result" class="result">Your robot's response will appear here.</div></section>
-</main><script>
-const $=id=>document.getElementById(id);
-async function status(){try{const r=await fetch('/api/status');const s=await r.json();$('connection').textContent=s.providers.length?'Configured: '+s.providers.join(', '):'No API keys configured';$('connection').style.color=s.providers.length?'#7ee0ae':'#ffbd70'}catch{$('connection').textContent='Server unavailable'}}
-$('run').addEventListener('click',async()=>{const task=$('task').value.trim();if(!task){$('result').textContent='Enter a task first.';return} $('run').disabled=true;$('meta').textContent='Robot is working…';$('result').textContent='';try{const r=await fetch('/api/task',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,agent:$('agent').value})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');$('meta').textContent='Completed by '+j.agentName+' using '+j.provider+' • '+j.id;$('result').textContent=j.result}catch(e){$('meta').textContent='';$('result').textContent='Error: '+e.message}finally{$('run').disabled=false}});
-status();
-</script></body></html>
+:root{
+  --page:#e8edf6;--card:#f8faff;--ink:#172036;--mute:#566079;
+  --wall:#f3f6fc;--frame:#8a95ad;--slab:#aeb9d0;--shaft:#dde4f1;--roof:#7b86a6;--office:#f8edc8;
+  --desk:#e2b47a;--desk-edge:#bf8d52;--chair:#4a5470;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0f1428;--card:#1a2040;--ink:#eef2ff;--mute:#a3acc9;
+  --wall:#1b2140;--frame:#5b678c;--slab:#3a4570;--shaft:#131833;--roof:#46517a;--office:#322d1c;
+  --desk:#c9965c;--desk-edge:#a87a45;--chair:#7d88aa;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --page:#0f1428;--card:#1a2040;--ink:#eef2ff;--mute:#a3acc9;
+  --wall:#1b2140;--frame:#5b678c;--slab:#3a4570;--shaft:#131833;--roof:#46517a;--office:#322d1c;
+  --desk:#c9965c;--desk-edge:#a87a45;--chair:#7d88aa;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--page);color:var(--ink);font-family:Fredoka,ui-rounded,"Avenir Next Rounded",system-ui,sans-serif;padding:20px 16px 28px}
+main{max-width:520px;margin:0 auto}
+h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
+
+.bar{display:flex;gap:8px;margin:0 0 8px}
+#task{flex:1;min-width:0;padding:11px 14px;border:2px solid var(--frame);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:16px}
+#go{padding:0 16px;border:0;border-radius:12px;background:var(--ink);color:var(--page);font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+#task:focus-visible,#go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+#now{margin:0 0 12px;color:var(--mute);font-size:14px;min-height:1.4em}
+
+#house{position:relative;width:100%;aspect-ratio:360/660;user-select:none}
+#house>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.board{position:absolute;left:5.56%;top:38.18%;width:38.89%;height:11.82%;padding:4px 6px;overflow:hidden;border:1px solid var(--frame);border-radius:6px;background:var(--card);font-size:clamp(9px,2.9vw,11px);line-height:1.3}
+.board b{display:block;font-weight:600}
+.board small{display:block;color:var(--mute)}
+.board div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board div:first-of-type{animation:pop .5s ease-out}
+.board i{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%}
+@keyframes pop{from{opacity:0;transform:scale(.92)}}
+
+.r{position:absolute;width:6.67%;transform:translate(-50%,-100%)}
+.r svg{display:block;width:100%;height:auto;overflow:visible}
+.talk{z-index:5}
+.bub{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);width:max-content;max-width:clamp(96px,30vw,118px);padding:4px 7px;border:1px solid var(--frame);border-radius:9px;background:var(--card);color:var(--ink);font-size:clamp(9.5px,2.9vw,11px);line-height:1.25;text-align:center;opacity:0;pointer-events:none;transition:opacity .15s}
+.bub::after{content:"";position:absolute;top:100%;left:calc(50% - var(--dx,0px));width:6px;height:6px;background:var(--card);border:solid var(--frame);border-width:0 1px 1px 0;transform:translate(-50%,-3px) rotate(45deg)}
+.talk .bub{opacity:1}
+
+.walk svg{animation:hop .28s ease-in-out infinite alternate}
+.work svg{animation:hop .6s ease-in-out infinite alternate}
+.walk .lg{transform-box:fill-box;transform-origin:50% 0;animation:swing .28s ease-in-out infinite alternate}
+.walk .lg.b{animation-direction:alternate-reverse}
+.sit .legs{visibility:hidden}
+.ride::after{content:"";position:absolute;left:-15%;right:-15%;bottom:-3px;height:4px;border-radius:2px;background:var(--frame)}
+@keyframes hop{to{transform:translateY(-1.5px)}}
+@keyframes swing{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
+@media (prefers-reduced-motion:reduce){.r svg,.r .lg,.board div{animation:none!important}}
+
+#log{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:6px;font-size:14px;line-height:1.35}
+#log li{display:flex;gap:8px;align-items:flex-start}
+#log li:nth-child(n+2){color:var(--mute)}
+#log i{width:9px;height:9px;margin-top:5px;border-radius:50%;flex:none}
+#log b{font-weight:600}
+
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.subtitle{margin:-5px 0 0;color:var(--mute);font-size:14px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px}
+#now{flex:1;margin:0;color:var(--mute);font-size:14px;min-height:1.4em}
+.secondary{padding:8px 11px;border:1px solid var(--frame);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.secondary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.activity h2{font-size:16px;margin:18px 0 8px}
+.note{margin:18px 0 0;color:var(--mute);font-size:12px;line-height:1.45}
+#go:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:380px){.top{align-items:center}.toolbar{align-items:flex-start}.secondary{font-size:12px;padding:7px 8px}}
+
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <h1>Robot Office AI</h1>
+      <p class="subtitle">Eight specialist robots, working together on your tasks.</p>
+    </div>
+    <button id="theme" class="secondary" type="button" aria-label="Switch color theme">Dark mode</button>
+  </header>
+  <div class="bar">
+    <input id="task" type="text" maxlength="80" placeholder="Type a task, like plan a trip to Madrid" autocomplete="off" enterkeyhint="send" aria-label="Task">
+    <button id="go" type="button">Start task</button>
+  </div>
+  <div class="toolbar">
+    <p id="now" role="status" aria-live="polite"></p>
+    <button id="clear" class="secondary" type="button">Clear completed</button>
+  </div>
+  <div id="house"><div id="board" class="board"></div></div>
+  <section id="answer" class="activity" aria-label="AI team result" hidden>
+    <h2>AI team result</h2>
+    <pre id="answerText" style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:14px;line-height:1.5;background:var(--card);border:1px solid var(--frame);border-radius:10px;padding:12px"></pre>
+  </section>
+  <section class="activity" aria-label="Recent robot activity">
+    <h2>Recent activity</h2>
+    <ul id="log"></ul>
+  </section>
+  <p class="note">Live AI mode: robots animate in the office and send tasks to the secure server. API keys stay on the server.</p>
+</main>
+
+<script>
+/* ---------- data ---------- */
+const BOTS = [
+  {n:"Boss", j:"Team manager", c:"#f59e5b", p:"★", agent:"boss"},
+  {n:"Researcher", j:"Research specialist", c:"#35b6a8", p:"⌕", agent:"researcher"},
+  {n:"Coder", j:"Software developer", c:"#8e6cf0", p:"</>", agent:"coder"},
+  {n:"Editor", j:"Editor", c:"#5b6ee1", p:"✎", agent:"editor"},
+  {n:"Analyst", j:"Data analyst", c:"#4fb36b", p:"∑", agent:"analyst"},
+  {n:"Writer", j:"Content writer", c:"#ef6aa7", p:"W", agent:"writer"},
+  {n:"Reviewer", j:"Quality reviewer", c:"#f2b134", p:"✓", agent:"reviewer"},
+  {n:"Tester", j:"QA tester", c:"#29b6f6", p:"T", agent:"tester"}
+];
+
+/* Words in your task decide which robot leads it. */
+const KEYS = {
+  Boss: /manage|organize|coordinate|project|team|plan|task|all/i,
+  Researcher: /research|find|search|look up|compare|news|facts|source/i,
+  Coder: /code|app\\b|bug|website|program|script|software|fix|build|api/i,
+  Editor: /edit|proofread|grammar|rewrite|polish|document|revise/i,
+  Analyst: /analy[sz]|data|calculate|statistics|report|evaluate|budget/i,
+  Writer: /write|email|letter|post|story|essay|blog|message|draft|poem/i,
+  Reviewer: /review|check|audit|security|quality|inspect|feedback/i,
+  Tester: /test|testing|qa|validate|verify|edge case|debug/i
+};
+
+/* What the lead asks a helper, and how the helper answers. */
+const TALK = {
+  Boss: ["Who should handle this task?", "I will coordinate the specialist team."],
+  Researcher: ["What facts do we need?", "I will investigate the information."],
+  Coder: ["Does this need code?", "I will work on the implementation."],
+  Editor: ["Could this be clearer?", "I will polish the writing."],
+  Analyst: ["What does the data tell us?", "I will analyze the details."],
+  Writer: ["Do we need a draft?", "I will prepare the content."],
+  Reviewer: ["What needs checking?", "I will review quality and risks."],
+  Tester: ["How can we verify it?", "I will prepare test cases."]
+};
+
+/* ---------- geometry: 360 x 660 units, 6 floors, my office is the big room in the middle ---------- */
+const W = 360, H = 660, HALL = 180, OFFICE = 2;
+const FYS = [128, 224, 368, 464, 560, 656];          // y of each floor line
+const FH  = [92, 92, 140, 92, 92, 92];               // room height of each floor
+const SLOT = [0, 0, 1, 1, 3, 3, 4, 4];         // floor of each robot's office
+const seatX = i => (i & 1 ? 280 : 80);
+const seat = r => ({f: SLOT[r.i], x: seatX(r.i), sit: 1});
+const visit = r => ({f: SLOT[r.i], x: r.i & 1 ? 242 : 118});
+const DESK = {f: OFFICE, x: 205};                    // where a robot stands to get a task from me
+const BOARD = {f: OFFICE, x: 95};                    // where a robot pins a finished task
+const wander = () => {
+  const f = rand(0, 6) | 0;
+  return {f, x: (f === OFFICE ? [40, 75, 115, 150, 205] : [HALL, 112, 248, 100, 262])[rand(0, 5) | 0]};
+};
+const nearest = y => FYS.reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a));
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => s.replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const short = s => (s.length > 28 ? s.slice(0, 27) + "…" : s);
+const shade = (hex, k) =>
+  "#" + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, "0")).join("");
+
+/* ---------- drawing ---------- */
+function building() {
+  const oy = FYS[OFFICE], ot = oy - FH[OFFICE];
+  let s = `<path d="M0 36L180 4L360 36z" fill="var(--roof)"/>
+<rect x="8" y="36" width="344" height="${H - 36}" fill="var(--wall)" stroke="var(--frame)" stroke-width="3"/>
+<rect x="148" y="36" width="64" height="${H - 36}" fill="var(--shaft)"/>
+<rect x="8" y="${ot}" width="344" height="${FH[OFFICE]}" fill="var(--office)"/>
+<text x="20" y="${ot + 17}" font-size="12" font-weight="600" fill="var(--ink)">My office</text>
+<rect x="264" y="${oy - 64}" width="30" height="40" rx="8" fill="var(--chair)"/>
+<rect x="266" y="${oy - 42}" width="26" height="18" rx="7" fill="#7a8bb8"/>
+<circle cx="279" cy="${oy - 52}" r="9" fill="#e9b98f"/>
+<path d="M270 ${oy - 54}a9 9 0 0 1 18 0z" fill="#3b2f2a"/>
+<circle cx="275.5" cy="${oy - 51}" r="1" fill="#222"/><circle cx="282.5" cy="${oy - 51}" r="1" fill="#222"/>
+<rect x="222" y="${oy - 26}" width="114" height="6" rx="2" fill="var(--desk)"/>
+<rect x="226" y="${oy - 20}" width="106" height="20" fill="var(--desk-edge)"/>
+<text x="279" y="${oy - 6}" font-size="9" font-weight="600" text-anchor="middle" fill="#fff">You</text>
+<text x="240" y="${oy - 27}" font-size="11" text-anchor="middle">☕</text>
+<text x="343" y="${oy - 1}" font-size="18" text-anchor="middle">🪴</text>`;
+
+  BOTS.forEach((b, i) => {                           // one small office per robot
+    const f = SLOT[i], side = i & 1, fy = FYS[f], top = fy - FH[f];
+    const X = (x, w = 0) => (side ? W - x - w : x);
+    const rc = (x, y, w, h, fill, rx = 0) =>
+      `<rect x="${X(x, w)}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}"/>`;
+    s += `<rect x="${side ? 212 : 8}" y="${top}" width="140" height="${FH[f]}" fill="${b.c}" fill-opacity=".2"/>`
+      + rc(18, fy - 22, 52, 4, "var(--desk)", 1) + rc(21, fy - 18, 3, 18, "var(--desk-edge)") + rc(64, fy - 18, 3, 18, "var(--desk-edge)")
+      + rc(28, fy - 36, 16, 12, "var(--ink)", 2) + rc(30, fy - 34, 12, 8, b.c, 1) + rc(35, fy - 24, 2, 3, "var(--ink)")
+      + rc(90, fy - 32, 4, 19, "var(--chair)", 2) + rc(69, fy - 13, 22, 3, "var(--chair)", 1.5)
+      + rc(78, fy - 10, 4, 8, "var(--chair)") + rc(70, fy - 3, 20, 3, "var(--chair)", 1.5)
+      + `<text x="${X(56)}" y="${fy - 24}" font-size="12" text-anchor="middle">${b.p}</text>`
+      + `<text x="${X(80)}" y="${top + 14}" font-size="10.5" font-weight="600" text-anchor="middle" fill="var(--ink)">${b.n}</text>`
+      + `<text x="${X(80)}" y="${top + 25}" font-size="8.5" text-anchor="middle" fill="var(--mute)">${b.j}</text>`;
+  });
+
+  FYS.forEach((fy, f) => {                           // floor slabs and doorways
+    s += `<rect x="8" y="${fy}" width="344" height="4" fill="var(--slab)"/>`;
+    if (f !== OFFICE) {
+      const top = fy - FH[f];
+      s += `<rect x="147" y="${top}" width="2" height="${FH[f] - 34}" fill="var(--frame)"/><rect x="211" y="${top}" width="2" height="${FH[f] - 34}" fill="var(--frame)"/>`;
+    }
+  });
+  return s + `<rect x="174" y="36" width="12" height="${H - 36}" fill="var(--frame)" fill-opacity=".18"/>`;
+}
+
+const EYES = [
+  '<circle cx="9.5" cy="8.5" r="1.6"/><circle cx="14.5" cy="8.5" r="1.6"/>',
+  '<path d="M7.5 9.5q1.5-2.5 3 0M13.5 9.5q1.5-2.5 3 0" fill="none" stroke="#7df9ff" stroke-width="1.3" stroke-linecap="round"/>',
+  '<rect x="8" y="7.5" width="8" height="2" rx="1"/>'
+];
+const GEAR = [
+  d => `<path d="M12 2V-2" stroke="${d}" stroke-width="1.5"/><circle cx="12" cy="-3" r="2" fill="#ffd166"/>`,
+  d => `<path d="M8 2L6 -3M16 2L18 -3" stroke="${d}" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="-4" r="1.6" fill="#ffd166"/><circle cx="18" cy="-4" r="1.6" fill="#ffd166"/>`,
+  d => `<g fill="${d}"><rect x="0" y="6" width="3.5" height="6" rx="1.7"/><rect x="20.5" y="6" width="3.5" height="6" rx="1.7"/></g>`,
+  d => `<path d="M4 3Q12-5 20 3z" fill="${d}"/>`,
+  d => `<path d="M12 2Q9 0 12-2T12-6" fill="none" stroke="${d}" stroke-width="1.4" stroke-linecap="round"/>`
+];
+
+function sprite(c, i) {
+  const d = shade(c, 0.68);
+  return `<svg viewBox="0 -6 24 38" aria-hidden="true">
+<g class="legs" fill="${d}"><rect class="lg" x="7" y="26" width="4" height="6" rx="1.5"/><rect class="lg b" x="13" y="26" width="4" height="6" rx="1.5"/></g>
+<rect x="2" y="16" width="3" height="8" rx="1.5" fill="${d}"/><rect x="19" y="16" width="3" height="8" rx="1.5" fill="${d}"/>
+<rect x="5" y="14" width="14" height="13" rx="4" fill="${c}"/><rect x="9" y="17" width="6" height="4" rx="1.5" fill="#fff" fill-opacity=".45"/>
+${GEAR[i % 5](d)}<rect x="3" y="2" width="18" height="13" rx="5" fill="${c}"/><rect x="5.5" y="4.5" width="13" height="8" rx="3.5" fill="#151a26"/>
+<g fill="#7df9ff">${EYES[i % 3]}</g></svg>`;
+}
+
+/* ---------- set up the house, the robots and me ---------- */
+const house = document.getElementById("house");
+const boardEl = document.getElementById("board");
+const logEl = document.getElementById("log");
+const nowEl = document.getElementById("now");
+const inp = document.getElementById("task");
+house.insertAdjacentHTML("afterbegin", `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${building()}</svg>`);
+
+const place = r => {
+  r.el.style.left = (r.x / W * 100) + "%";
+  r.el.style.top = (r.y / H * 100) + "%";
+};
+
+const R = BOTS.map((b, i) => {
+  const el = document.createElement("div");
+  el.className = "r sit";
+  el.innerHTML = sprite(b.c, i) + '<div class="bub"></div>';
+  house.append(el);
+  const r = {...b, i, el, bub: el.lastChild, x: seatX(i), y: FYS[SLOT[i]] - 7, path: [], res: null, busy: false, sit: 1};
+  place(r);
+  return r;
+});
+
+const youEl = document.createElement("div");         // an invisible spot above my head for my speech bubble
+youEl.className = "r";
+youEl.innerHTML = '<div class="bub"></div>';
+house.append(youEl);
+const YOU = {n: "You", c: "#8a95ad", el: youEl, bub: youEl.firstChild, x: 279, y: FYS[OFFICE] - 62};
+place(YOU);
+
+/* ---------- finished tasks pinned in my office (kept in this browser) ---------- */
+let done = [];
+try {
+  const saved = JSON.parse(localStorage.getItem("robot-office-done"));
+  if (Array.isArray(saved)) done = saved
+    .filter(d => d && typeof d.text === "string" && typeof d.c === "string")
+    .slice(0, 20);
+} catch (e) {}
+
+function renderBoard() {
+  boardEl.innerHTML = "<b>Done tasks</b>" + (done.length
+    ? done.slice(0, 4).map(d => `<div><i style="background:${d.c}"></i>${esc(d.text)}</div>`).join("")
+    : "<small>Finished tasks appear here.</small>");
+}
+function pin(entry) {
+  done.unshift(entry);
+  done = done.slice(0, 20);
+  try { localStorage.setItem("robot-office-done", JSON.stringify(done)); } catch (e) {}
+  renderBoard();
+}
+
+/* ---------- movement: walk along the floor, ride the lift in the middle ---------- */
+function go(r, d) {
+  if (r.res) r.res(false);                           // cancel whatever it was doing
+  r.el.classList.remove("sit", "work");
+  const fy = FYS[d.f], path = [];
+  if (Math.abs(r.y - fy) > 8) {                      // different floor: via the lift
+    const y0 = r.x === HALL ? r.y : nearest(r.y);
+    path.push({x: HALL, y: y0}, {x: HALL, y: fy});
+  }
+  path.push({x: d.x, y: d.sit ? fy - 7 : fy});
+  r.path = path;
+  r.sit = d.sit;
+  return new Promise(res => (r.res = res));
+}
+
+function arrive(r) {
+  r.el.classList.remove("walk", "ride");
+  if (r.sit) r.el.classList.add("sit");
+  const done = r.res;
+  r.res = null;
+  if (done) done(true);
+}
+
+let last = performance.now();
+function tick(t) {
+  const dt = Math.min(0.05, (t - last) / 1000);
+  last = t;
+  for (const r of R) {
+    if (r.path.length) {
+      const p = r.path[0], dx = p.x - r.x, dy = p.y - r.y, dist = Math.hypot(dx, dy);
+      const vert = Math.abs(dx) < 0.5 && Math.abs(dy) > 1, step = (vert ? 75 : 46) * dt;
+      if (dist <= step) { r.x = p.x; r.y = p.y; r.path.shift(); }
+      else { r.x += dx / dist * step; r.y += dy / dist * step; }
+      r.el.classList.add("walk");
+      r.el.classList.toggle("ride", vert);
+      if (!r.path.length) arrive(r);
+    }
+    place(r);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------- talking ---------- */
+function addLog(r, text) {
+  logEl.insertAdjacentHTML("afterbegin", `<li><i style="background:${r.c}"></i><span><b>${r.n}</b> ${esc(text)}</span></li>`);
+  while (logEl.children.length > 8) logEl.lastChild.remove();
+}
+
+async function say(r, text) {
+  const b = r.bub;
+  b.textContent = text;
+  b.style.marginLeft = "0px";
+  b.style.setProperty("--dx", "0px");
+  const c = house.getBoundingClientRect(), q = b.getBoundingClientRect();
+  const dx = q.left < c.left + 4 ? c.left + 4 - q.left : q.right > c.right - 4 ? c.right - 4 - q.right : 0;
+  b.style.marginLeft = dx + "px";                    // keep the bubble inside the house
+  b.style.setProperty("--dx", dx + "px");
+  r.el.classList.add("talk");
+  addLog(r, text);
+  await sleep(1500 + text.length * 55);
+  r.el.classList.remove("talk");
+}
+
+function showResult(text, lead) {
+  const section = document.getElementById("answer");
+  const output = document.getElementById("answerText");
+  output.textContent = text;
+  section.hidden = false;
+}
+
+/* ---------- tasks ---------- */
+const queue = [], active = new Set();
+let taskId = 0;
+const fit = (t, r) => (KEYS[r.n].test(t.text) ? 1 : 0);
+const showNow = () => {
+  nowEl.textContent = active.size || queue.length
+    ? `${active.size} running, ${queue.length} waiting`
+    : "No tasks yet. Type one above and the robots will get to work.";
+};
+
+async function run(t, lead, helpers) {
+  const team = [lead, ...helpers], tag = short(t.text);
+  team.forEach(r => (r.busy = true));
+  active.add(t);
+  showNow();
+  try {
+    await go(lead, DESK);
+    await say(YOU, t.text);
+    await say(lead, `Got it! I will organize “${tag}”.`);
+    await Promise.all(team.map(r => go(r, seat(r))));
+    team.forEach(r => r.el.classList.add("work"));
+    await sleep(700);
+    await say(lead, "Connecting to the AI team…");
+    const responses = await Promise.all(team.map(async (robot) => {
+      const [ask] = TALK[robot.n];
+      await go(lead, visit(robot));
+      await say(lead, robot === lead ? `Leading: “${tag}”` : ask);
+      await say(robot, "Working on your task…");
+      const response = await fetch("/api/task", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({task: t.text, agent: robot.agent})
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `${robot.n} could not complete the task.`);
+      addLog(robot, `AI response received via ${data.provider || "configured provider"}.`);
+      return {robot, result: data.result || ""};
+    }));
+    await go(lead, seat(lead));
+    lead.el.classList.add("work");
+    await say(lead, "The AI team has finished its responses.");
+    const answer = responses.map(x => `${x.robot.n}:\\n${x.result}`).join("\\n\\n");
+    showResult(answer, lead);
+    await go(lead, BOARD);
+    pin({text: t.text, c: lead.c, id: t.id, at: Date.now()});
+    await say(lead, `Done! “${tag}” is on your board.`);
+    await say(YOU, `Great work, ${lead.n}!`);
+  } catch (err) {
+    console.error("Task animation failed:", err);
+    addLog(lead, `Task failed: ${err.message}. Check the server API keys and try again.`);
+    nowEl.textContent = "The task could not finish. Check the activity log.";
+  } finally {
+    team.forEach(r => {
+      r.busy = false;
+      r.el.classList.remove("work", "talk", "walk", "ride");
+      r.path = [];
+      r.bub.textContent = "";
+    });
+    active.delete(t);
+    showNow();
+    pump();
+  }
+}
+
+/* Start waiting tasks whenever three robots are free: the best match leads, the next two help. */
+function pump() {
+  while (queue.length) {
+    const free = R.filter(r => !r.busy);
+    if (free.length < 3) break;
+    const t = queue.shift();
+    free.sort((a, b) => fit(t, b) - fit(t, a) || a.i - b.i);
+    run(t, free[0], free.slice(1, 3));
+  }
+  showNow();
+}
+
+function submit() {
+  const text = inp.value.replace(/\s+/g, " ").trim().slice(0, 80);
+  if (!text) {
+    inp.focus();
+    return;
+  }
+  inp.value = "";
+  queue.push({text, id: ++taskId});
+  pump();
+}
+document.getElementById("go").addEventListener("click", submit);
+inp.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+
+/* Robots without a task wander around the house. */
+async function idle(r) {
+  await sleep(rand(500, 4500));
+  for (;;) {
+    if (r.busy) { await sleep(700); continue; }
+    if (!await go(r, wander())) continue;
+    await sleep(rand(1200, 3500));
+  }
+}
+
+const themeButton = document.getElementById("theme");
+const root = document.documentElement;
+function applyTheme(theme) {
+  root.dataset.theme = theme;
+  themeButton.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+  themeButton.setAttribute("aria-label", `Switch to ${theme === "dark" ? "light" : "dark"} theme`);
+  try { localStorage.setItem("robot-office-theme", theme); } catch (e) {}
+}
+let preferredTheme = "light";
+try {
+  const storedTheme = localStorage.getItem("robot-office-theme");
+  preferredTheme = storedTheme === "dark" || storedTheme === "light"
+    ? storedTheme
+    : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+} catch (e) {}
+applyTheme(preferredTheme);
+themeButton.addEventListener("click", () => applyTheme(root.dataset.theme === "dark" ? "light" : "dark"));
+
+document.getElementById("clear").addEventListener("click", () => {
+  done = [];
+  try { localStorage.removeItem("robot-office-done"); } catch (e) {}
+  renderBoard();
+});
+
+renderBoard();
+showNow();
+fetch("/api/status").then(r => r.json()).then(status => {
+  const count = Array.isArray(status.providers) ? status.providers.length : 0;
+  nowEl.textContent = `${count} AI provider${count === 1 ? "" : "s"} configured • ${R.length} robots ready`;
+}).catch(() => { nowEl.textContent = "AI server status unavailable."; });
+R.forEach(r => idle(r));
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
