@@ -498,7 +498,7 @@ function pump() {
 }
 
 function submit() {
-  const text = inp.value.replace(/\s+/g, " ").trim().slice(0, 2000);
+  const text = inp.value.trim().slice(0, 12000);
   if (!text) {
     inp.focus();
     return;
