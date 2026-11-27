@@ -445,7 +445,18 @@ function showResult(text, lead) {
 /* ---------- tasks ---------- */
 const queue = [], active = new Set();
 let taskId = 0;
-const fit = (t, r) => (KEYS[r.n].test(t.text) ? 1 : 0);
+function requiredAgents(text) {
+  const t = text.toLowerCase();
+  const rules = [
+    ["coder", /\b(code|coding|program|programming|software|website|web app|app|api|database|bug|debug|fix|build|develop|deploy|script|html|css|javascript|python)\b/],
+    ["writer", /\b(write|writing|draft|email|letter|essay|article|blog|story|poem|caption|post|speech|script)\b/],
+    ["editor", /\b(edit|editing|proofread|grammar|rewrite|revise|polish|format|summari[sz]e|translate)\b/],
+    ["analyst", /\b(analy[sz]e|analysis|calculate|calculation|statistics|statistical|data|budget|forecast|compare|evaluate|financial|research report)\b/],
+    ["reviewer", /\b(review|audit|security|inspect|critique|check|assess|verify|validate|risk|compliance)\b/],
+    ["tester", /\b(test|testing|test cases|qa|quality assurance|validate|verification|debug|troubleshoot)\b/]
+  ];
+  return new Set(["researcher","boss",...rules.filter(([,p])=>p.test(t)).map(([slug])=>slug)]);
+}
 const showNow = () => {
   nowEl.textContent = active.size || queue.length
     ? `${active.size} running, ${queue.length} waiting`
@@ -453,7 +464,11 @@ const showNow = () => {
 };
 
 async function run(t, lead, helpers) {
-  const team = [lead, ...helpers], tag = short(t.text);
+  const selected = requiredAgents(t.text);
+  const team = R.filter(r => selected.has(r.agent));
+  lead = R.find(r => r.agent === "researcher");
+  helpers = team.filter(r => r !== lead);
+  const tag = short(t.text);
   team.forEach(r => { r.busy = true; });
   active.add(t);
   showNow();
@@ -467,7 +482,13 @@ async function run(t, lead, helpers) {
     const savedData = await saved.json();
     if (!saved.ok) throw new Error(savedData.error || "Could not save this task.");
     t.dbId = savedData.task.id;
-    addLog(lead, "Task saved to the permanent queue. The server team can continue if this page closes.");
+    addLog(lead, "Task saved. Selected specialists: " + team.map(r=>r.n).join(", ") + ".");
+    R.filter(r => !selected.has(r.agent)).forEach(r => {
+      r.busy = false;
+      r.path = [];
+      r.el.classList.remove("work","talk","walk","ride");
+      r.el.classList.add("sit");
+    });
     await go(lead, DESK);
     await say(YOU, t.text);
     await say(lead, "I have saved the full instruction. The background team is taking over.");
@@ -541,11 +562,15 @@ async function run(t, lead, helpers) {
 /* Every available specialist joins each task; the best match is the lead. */
 function pump() {
   while (queue.length) {
-    const free = R.filter(r => !r.busy);
-    if (free.length < R.length) break;
-    const t = queue.shift();
-    free.sort((a, b) => (a.agent === "researcher" ? -100 : a.agent === "boss" ? -90 : 0) - (b.agent === "researcher" ? -100 : b.agent === "boss" ? -90 : 0) || fit(t, b) - fit(t, a) || a.i - b.i);
-    run(t, free[0], free.slice(1));
+    const nextIndex = queue.findIndex(t => [...requiredAgents(t.text)].every(slug => {
+      const robot = R.find(r => r.agent === slug);
+      return robot && !robot.busy;
+    }));
+    if (nextIndex < 0) break;
+    const [t] = queue.splice(nextIndex, 1);
+    const lead = R.find(r => r.agent === "researcher");
+    const helpers = [...requiredAgents(t.text)].filter(slug => slug !== "researcher").map(slug => R.find(r => r.agent === slug));
+    run(t, lead, helpers);
   }
   showNow();
 }
