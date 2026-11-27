@@ -15,15 +15,13 @@ App: https://robot-office-ai-murmur6.vercel.app
 
 ## Supported AI providers
 
-Robot Office uses only these two AI providers:
-- ChatGPT / OpenAI: `OPENAI_API_KEY` (default model: `gpt-4.1-mini`)
-- Grok / xAI: `XAI_API_KEY` (default model: `grok-3-mini`)
+Robot Office uses ChatGPT / OpenAI only: `OPENAI_API_KEY` (default model: `gpt-4.1-mini`).
 
-Add the keys in **Vercel → robot-office-ai → Settings → Environment Variables**, then redeploy. The background worker runs in Supabase, so add the same provider keys separately in **Supabase → Edge Functions → Secrets**. Vercel environment variables are not shared with Supabase. Never commit real keys to GitHub or paste them into chat.
+Add the keys in **Vercel → robot-office-ai → Settings → Environment Variables**, then redeploy. The background worker runs in Supabase, so add `OPENAI_API_KEY` separately in **Supabase → Edge Functions → Secrets**. Vercel environment variables are not shared with Supabase. Never commit real keys to GitHub or paste them into chat.
 
-Optional model overrides: `OPENAI_MODEL` and `XAI_MODEL`.
+Optional model override: `OPENAI_MODEL`.
 
-Each robot uses its assigned preferred provider first, then falls back to the other configured provider.
+Every robot uses OpenAI. No Grok, Gemini, Mistral, Groq, or Cloudflare AI provider is enabled.
 
 ## Check the app
 
