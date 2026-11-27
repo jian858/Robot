@@ -182,6 +182,8 @@ h1{font-size:clamp(25px,5vw,34px);letter-spacing:-.6px}
   </section>
   <section id="savedWork" class="activity" aria-label="Saved work history">
     <h2>Saved work history</h2>
+    <input id="historySearch" type="search" placeholder="Search saved tasks, answers and memory…" aria-label="Search saved work and memory" style="width:100%;min-height:44px;margin:0 0 12px;padding:10px 13px;border:1px solid var(--frame);border-radius:11px;background:var(--page);color:var(--ink);font:inherit">
+    <p id="searchStatus" class="note" aria-live="polite" style="margin:0 0 8px">Search across saved tasks, robot answers and memory.</p>
     <div id="savedWorkList"><p class="note">Loading saved work…</p></div>
   </section>
   <section class="activity" aria-label="Recent robot activity">
@@ -673,6 +675,7 @@ function updateMemoryCore(memories) {
     title.textContent = memory.title || "Saved memory";
     const body = document.createElement("span");
     body.textContent = String(memory.content || "").slice(0,180) + (String(memory.content || "").length > 180 ? "…" : "");
+    item.dataset.searchText = [memory.memory_type || "", memory.title || "", memory.content || "", ...(memory.tags || [])].join(" ").toLowerCase();
     item.append(title,body);
     facts.append(item);
   });
@@ -710,7 +713,8 @@ async function restoreSavedTasks() {
           const who = m.robot_agents?.name || "Robot";
           return who + ":\\n" + m.content;
         }).join("\\n\\n");
-        output.textContent = task.result || (messages ? messages.slice(0,260) + (messages.length > 260 ? "…\n\nOpen the individual robot records in the database for full contributions." : "") : "No output was saved for this task.");
+        output.textContent = task.result || (messages ? messages : "No output was saved for this task.");
+        details.dataset.searchText = [shortTitle, task.instruction || "", task.result || "", messages].join(" ").toLowerCase();
         details.append(summary, prompt, output);
         history.append(details);
       });
@@ -724,6 +728,27 @@ async function restoreSavedTasks() {
 }
 restoreSavedTasks();
 setInterval(restoreSavedTasks, 15000);
+
+const historySearch = document.getElementById("historySearch");
+historySearch.addEventListener("input", () => {
+  const query = historySearch.value.trim().toLowerCase();
+  const tasks = [...document.querySelectorAll("#savedWorkList details")];
+  const memories = [...document.querySelectorAll("#memoryFacts .memory-fact")];
+  let visibleTasks = 0, visibleMemories = 0;
+  for (const item of tasks) {
+    const match = !query || (item.dataset.searchText || "").includes(query);
+    item.hidden = !match;
+    if (match) visibleTasks++;
+  }
+  for (const item of memories) {
+    const match = !query || (item.dataset.searchText || "").includes(query);
+    item.hidden = !match;
+    if (match) visibleMemories++;
+  }
+  document.getElementById("searchStatus").textContent = query
+    ? "Found " + visibleTasks + " saved task(s) and " + visibleMemories + " memory record(s)."
+    : "Search across saved tasks, robot answers and memory.";
+});
 fetch("/api/status").then(async r => {
   const type = r.headers.get("content-type") || "";
   if (!type.includes("application/json")) throw new Error("The deployed server has no JSON /api/status route yet.");
