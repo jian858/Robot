@@ -382,7 +382,7 @@ async function run(t, lead, helpers) {
     await Promise.all(team.map(r => go(r, seat(r))));
     await go(lead, DESK);
     await say(YOU, t.text);
-    await say(lead, \`Got it! I'll bring the team together for “\${tag}”.\`);
+    await say(lead, `Got it! I'll bring the team together for “${tag}”.`);
     await go(lead, seat(lead));
     await say(lead, "Everyone, let's discuss this task before we begin.");
     const responses = [];
@@ -392,10 +392,10 @@ async function run(t, lead, helpers) {
       const partner = team[(index + 1) % team.length];
       const [question] = TALK[robot.n];
       await go(robot, visit(robot));
-      await say(robot, \`\${robot.n}: \${question}\`);
+      await say(robot, `${robot.n}: ${question}`);
       await go(partner, visit(partner));
-      await say(partner, \`\${partner.n}: Let's share our specialist perspective and help \${robot.n}.\`);
-      await say(robot, \`\${robot.n}: Thanks. I'll include that in my work.\`);
+      await say(partner, `${partner.n}: Let's share our specialist perspective and help ${robot.n}.`);
+      await say(robot, `${robot.n}: Thanks. I'll include that in my work.`);
       try {
         const response = await fetch("/api/task", {
           method: "POST",
@@ -404,20 +404,20 @@ async function run(t, lead, helpers) {
         });
         const contentType = response.headers.get("content-type") || "";
         if (!contentType.includes("application/json")) {
-          const preview = (await response.text()).slice(0, 160).replace(/\\s+/g, " ");
-          throw new Error(\`AI endpoint returned a webpage (HTTP \${response.status}). \${preview}\`);
+          const preview = (await response.text()).slice(0, 160).replace(/\s+/g, " ");
+          throw new Error(`AI endpoint returned a webpage (HTTP ${response.status}). ${preview}`);
         }
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || \`\${robot.n} could not complete the task.\`);
+        if (!response.ok) throw new Error(data.error || `${robot.n} could not complete the task.`);
         const result = data.result || "";
         responses.push({robot, result});
         conversation.push({robot: robot.n, message: result.slice(0, 1800)});
-        addLog(robot, \`Finished its part using \${data.provider || "an AI provider"}.\`);
-        await say(robot, \`\${robot.n}: I have my contribution ready.\`);
+        addLog(robot, `Finished its part using ${data.provider || "an AI provider"}.`);
+        await say(robot, `${robot.n}: I have my contribution ready.`);
       } catch (robotError) {
-        conversation.push({robot: robot.n, message: \`Could not respond: \${robotError.message}\`});
-        addLog(robot, \`Could not finish its part: \${robotError.message}\`);
-        await say(robot, \`\${robot.n}: My AI connection failed. The others can continue.\`);
+        conversation.push({robot: robot.n, message: `Could not respond: ${robotError.message}`});
+        addLog(robot, `Could not finish its part: ${robotError.message}`);
+        await say(robot, `${robot.n}: My AI connection failed. The others can continue.`);
       }
       await go(robot, seat(robot));
       robot.el.classList.add("work");
@@ -425,16 +425,16 @@ async function run(t, lead, helpers) {
     if (!responses.length) throw new Error("All eight robots failed. Check server API keys, provider quotas and deployment settings.");
     await go(lead, DESK);
     await say(lead, "Team, I'm combining everyone's contributions now.");
-    const answer = responses.map(x => \`\${x.robot.n}:\\n\${x.result}\`).join("\\n\\n") +
-      (responses.length < team.length ? \`\\n\\n\${team.length - responses.length} robot(s) could not complete their part. The other robots still finished.\` : "");
+    const answer = responses.map(x => `${x.robot.n}:\n${x.result}`).join("\n\n") +
+      (responses.length < team.length ? `\n\n${team.length - responses.length} robot(s) could not complete their part. The other robots still finished.` : "");
     showResult(answer, lead);
     await go(lead, BOARD);
     pin({text: t.text, c: lead.c, id: t.id, at: Date.now()});
-    await say(lead, \`Done! “\${tag}” is on your board.\`);
-    await say(YOU, \`Great teamwork! \${responses.length} robots contributed.\`);
+    await say(lead, `Done! “${tag}” is on your board.`);
+    await say(YOU, `Great teamwork! ${responses.length} robots contributed.`);
   } catch (err) {
     console.error("Task animation failed:", err);
-    addLog(lead, \`Task failed: \${err.message}\`);
+    addLog(lead, `Task failed: ${err.message}`);
     nowEl.textContent = "The task could not finish. Check the activity log.";
   } finally {
     team.forEach(r => {
