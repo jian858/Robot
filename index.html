@@ -52,7 +52,7 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
 
 .r{position:absolute;width:6.67%;transform:translate(-50%,-100%)}
 .r svg{display:block;width:100%;height:auto;overflow:visible}
-.talk{z-index:5}
+.talk{z-index:5}\n.you-robot{z-index:4;filter:drop-shadow(0 2px 5px rgba(0,0,0,.18))}\n.you-robot::before{content:"YOU";position:absolute;left:50%;bottom:calc(100% + 2px);transform:translateX(-50%);font-size:8px;font-weight:600;letter-spacing:.04em;color:var(--ink);background:var(--card);border:1px solid var(--frame);border-radius:5px;padding:1px 4px;white-space:nowrap}\n.meet{filter:drop-shadow(0 0 5px rgba(53,182,168,.55))}
 .bub{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);width:max-content;max-width:clamp(96px,30vw,118px);padding:4px 7px;border:1px solid var(--frame);border-radius:9px;background:var(--card);color:var(--ink);font-size:clamp(9.5px,2.9vw,11px);line-height:1.25;text-align:center;opacity:0;pointer-events:none;transition:opacity .15s}
 .bub::after{content:"";position:absolute;top:100%;left:calc(50% - var(--dx,0px));width:6px;height:6px;background:var(--card);border:solid var(--frame);border-width:0 1px 1px 0;transform:translate(-50%,-3px) rotate(45deg)}
 .talk .bub{opacity:1}
@@ -342,11 +342,11 @@ const R = BOTS.map((b, i) => {
   return r;
 });
 
-const youEl = document.createElement("div");         // an invisible spot above my head for my speech bubble
-youEl.className = "r";
-youEl.innerHTML = '<div class="bub"></div>';
+const youEl = document.createElement("div");
+youEl.className = "r you-robot sit";
+youEl.innerHTML = sprite("#8a95ad", 8) + '<div class="bub"></div>';
 house.append(youEl);
-const YOU = {n: "You", c: "#8a95ad", el: youEl, bub: youEl.firstChild, x: 279, y: FYS[OFFICE] - 62};
+const YOU = {n:"You",c:"#8a95ad",agent:"user",i:8,el:youEl,bub:youEl.lastChild,x:180,y:FYS[OFFICE]-48,path:[],res:null,sit:1,busy:false};
 place(YOU);
 
 /* ---------- finished tasks pinned in my office (kept in this browser) ---------- */
@@ -379,7 +379,7 @@ function go(r, d) {
     const y0 = r.x === HALL ? r.y : nearest(r.y);
     path.push({x: HALL, y: y0}, {x: HALL, y: fy});
   }
-  path.push({x: d.x, y: d.sit ? fy - 7 : fy});
+  path.push({x: d.x, y: Number.isFinite(d.y) ? d.y : (d.sit ? fy - 7 : fy)});
   r.path = path;
   r.sit = d.sit;
   return new Promise(res => (r.res = res));
@@ -397,7 +397,7 @@ let last = performance.now();
 function tick(t) {
   const dt = Math.min(0.05, (t - last) / 1000);
   last = t;
-  for (const r of R) {
+  for (const r of [...R, YOU]) {
     if (r.path.length) {
       const p = r.path[0], dx = p.x - r.x, dy = p.y - r.y, dist = Math.hypot(dx, dy);
       const vert = Math.abs(dx) < 0.5 && Math.abs(dy) > 1, step = (vert ? 75 : 46) * dt;
@@ -575,6 +575,16 @@ function pump() {
   showNow();
 }
 
+async function gatherAllRobots() {
+  addLog(YOU, "Calling every worker to the office meeting area.");
+  YOU.el.classList.remove("sit");
+  await Promise.all(R.map((robot,i) => go(robot,{f:OFFICE,x:24+i*44,sit:false})));
+  await go(YOU,{f:OFFICE,x:180,y:FYS[OFFICE]-48,sit:false});
+  R.forEach(robot => robot.el.classList.add("meet"));
+  await say(YOU,"All workers are here. What should we do next?");
+  addLog(YOU, "All eight specialists gathered in the office.");
+  nowEl.textContent = "Office meeting: you and all eight workers are gathered.";
+}
 function submit() {
   const text = inp.value.trim().slice(0, 12000);
   if (!text) {
@@ -582,6 +592,10 @@ function submit() {
     return;
   }
   inp.value = "";
+  if (/^(?:all\\s+workers?|all\\s+robots?|everyone|team)\\b.*\\b(come|gather|meet|report)\\b.*\\b(office|meeting)\\b/i.test(text)) {
+    gatherAllRobots();
+    return;
+  }
   queue.push({text, id: ++taskId});
   pump();
 }
