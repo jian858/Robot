@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     requireDatabase();
     if (req.method === "GET") {
       const [tasks, memories] = await Promise.all([
-        dbRequest("/robot_tasks?select=id,title,instruction,status,result,error_message,created_at,completed_at,worker_next_agent,robot_task_messages(id,content,message_type,created_at,robot_agents(name,slug))&order=created_at.desc&limit=50"),
+        dbRequest("/robot_tasks?select=id,title,instruction,input_data,status,result,error_message,created_at,completed_at,worker_next_agent,robot_task_messages(id,content,message_type,created_at,robot_agents(name,slug))&order=created_at.desc&limit=50"),
         dbRequest("/robot_memory?select=id,memory_type,title,content,importance,tags,created_at&order=importance.desc,created_at.desc&limit=20")
       ]);
       return res.status(200).json({ tasks, memories });
