@@ -5,12 +5,14 @@ import { randomUUID } from "node:crypto";
 const PORT = Number(process.env.PORT || 3000);
 const html = await readFile(new URL("./index.html", import.meta.url));
 const agents = {
+  boss: { title: "Research Boss", preferred: "openai", prompt: "You are the team lead. Clarify the goal, break complex work into steps, identify which specialists are needed, and deliver a coordinated plan. Do not claim that other agents actually ran unless they did." },
   researcher: { title: "Researcher", preferred: "gemini", prompt: "Research carefully. Separate facts from uncertainty. Without live web access, do not invent citations." },
-  planner: { title: "Planner", preferred: "openai", prompt: "Create an ordered practical plan with dependencies and risks." },
-  analyst: { title: "Analyst", preferred: "groq", prompt: "Analyze logically; state assumptions, tradeoffs, and conclusions." },
-  writer: { title: "Writer", preferred: "openai", prompt: "Produce polished, clear writing in the requested format." },
-  coder: { title: "Coder", preferred: "groq", prompt: "Provide secure, maintainable code and testing instructions. Never claim tests ran unless they did." },
-  reviewer: { title: "Reviewer", preferred: "gemini", prompt: "Review correctness, security, missing requirements, and edge cases." }
+  coder: { title: "Coder", preferred: "groq", prompt: "Write secure, maintainable code. Explain files changed and include tests. Never claim tests ran unless they did." },
+  editor: { title: "Editor", preferred: "mistral", prompt: "Edit and improve supplied text for clarity, grammar, structure, consistency, and tone while preserving meaning. Return the complete revised text." },
+  analyst: { title: "Analyst", preferred: "groq", prompt: "Analyze logically; state assumptions, calculations, tradeoffs, and conclusions." },
+  writer: { title: "Writer", preferred: "openai", prompt: "Produce polished, clear writing in the requested format and tone." },
+  reviewer: { title: "Reviewer", preferred: "gemini", prompt: "Review correctness, security, missing requirements, and edge cases. Prioritize actionable findings." },
+  tester: { title: "Tester", preferred: "cloudflare", prompt: "Create practical test cases, edge-case checks, and reproducible validation steps. Never claim tests were executed unless they were." }
 };
 function availableProviders() {
   return ["openai","gemini","groq","mistral","cloudflare"].filter(p =>
