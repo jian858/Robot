@@ -101,7 +101,7 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
   </div>
   <div class="toolbar">
     <p id="now" role="status" aria-live="polite"></p>
-    <button id="clear" class="secondary" type="button">Clear completed</button>
+    <button id="clear" class="secondary" type="button">Clear board view</button>
   </div>
   <div id="house"><div id="board" class="board"></div></div>
   <section id="answer" class="activity" aria-label="AI team result" hidden>
@@ -579,7 +579,8 @@ fetch("/api/status").then(async r => {
   const status = await r.json();
   if (!r.ok) throw new Error(status.error || "Status request failed.");
   const count = Array.isArray(status.providers) ? status.providers.length : 0;
-  nowEl.textContent = `${count} AI provider${count === 1 ? "" : "s"} configured • ${R.length} robots moving`;
+  const storage = status.persistence ? " • saved to Supabase" : " • database key missing";
+  nowEl.textContent = `${count} AI provider${count === 1 ? "" : "s"} configured • ${R.length} robots moving${storage}`;
 }).catch(err => { nowEl.textContent = `Office animation is running • AI connection: ${err.message}`; });
 R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
 requestAnimationFrame(tick);
