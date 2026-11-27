@@ -3,14 +3,16 @@
 A Node.js app with six specialist robots and five supported AI providers.
 
 ## Robot team
-- Researcher — Gemini preferred
-- Planner — OpenAI preferred
-- Analyst — Groq preferred
-- Writer — OpenAI preferred
-- Coder — Groq preferred
-- Reviewer — Gemini preferred
+- Boss — team lead, task breakdown, coordination (OpenAI preferred)
+- Researcher — fact-finding and source evaluation (Gemini preferred; no live web search connected yet)
+- Coder — programming and debugging (Groq preferred)
+- Editor — grammar, clarity, and document editing (Mistral preferred)
+- Analyst — data analysis and reasoning (Groq preferred)
+- Writer — drafting and content creation (OpenAI preferred)
+- Reviewer — quality, security, and edge-case review (Gemini preferred)
+- Tester — test plans and validation steps (Cloudflare preferred)
 
-Every robot falls back to other configured providers when its preferred provider fails.
+Each robot uses its preferred configured provider first, then tries other configured providers as fallbacks. The Boss currently produces a coordination plan; it does not yet dispatch parallel sub-agent jobs.
 
 ## Providers
 OpenAI, Gemini, Groq, Mistral, and Cloudflare Workers AI. Cloudflare requires both an API token and account ID.
