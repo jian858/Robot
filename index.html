@@ -412,9 +412,9 @@ async function run(t, lead, helpers) {
         if (!response.ok) throw new Error(data.error || `${robot.n} could not complete the task.`);
         const result = data.result || "";
         responses.push({robot, result});
-        conversation.push({robot: robot.n, message: result.slice(0, 1800)});
+        conversation.push({robot: robot.n, message: result});
         addLog(robot, `Finished its part using ${data.provider || "an AI provider"}.`);
-        await say(robot, `${robot.n}: I have my contribution ready.`);
+        await say(robot, `${robot.n}: ${result.slice(0, 240)}${result.length > 240 ? "…" : ""}`);
       } catch (robotError) {
         conversation.push({robot: robot.n, message: `Could not respond: ${robotError.message}`});
         addLog(robot, `Could not finish its part: ${robotError.message}`);
