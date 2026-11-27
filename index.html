@@ -159,7 +159,8 @@ const FH  = [92, 92, 140, 92, 92, 92];               // room height of each floo
 const SLOT = [0, 0, 1, 1, 3, 3, 4, 4];         // floor of each robot's office
 const seatX = i => (i & 1 ? 280 : 80);
 const seat = r => ({f: SLOT[r.i], x: seatX(r.i), sit: 1});
-const visit = r => ({f: SLOT[r.i], x: r.i & 1 ? 242 : 118});
+const visit = r => ({f: SLOT[r.i], x: r.i & 1 ? 250 : 110});
+const meet = r => ({f: SLOT[r.i], x: r.i & 1 ? 226 : 134});
 const DESK = {f: OFFICE, x: 205};                    // where a robot stands to get a task from me
 const BOARD = {f: OFFICE, x: 95};                    // where a robot pins a finished task
 const wander = () => {
@@ -393,7 +394,7 @@ async function run(t, lead, helpers) {
       const [question] = TALK[robot.n];
       await go(robot, visit(robot));
       await say(robot, `${robot.n}: ${question}`);
-      await go(partner, visit(partner));
+      await go(partner, meet(robot));
       await say(partner, `${partner.n}: Let's share our specialist perspective and help ${robot.n}.`);
       await say(robot, `${robot.n}: Thanks. I'll include that in my work.`);
       try {
@@ -419,6 +420,7 @@ async function run(t, lead, helpers) {
         addLog(robot, `Could not finish its part: ${robotError.message}`);
         await say(robot, `${robot.n}: My AI connection failed. The others can continue.`);
       }
+      await go(partner, seat(partner));
       await go(robot, seat(robot));
       robot.el.classList.add("work");
     }
@@ -476,15 +478,8 @@ function submit() {
 document.getElementById("go").addEventListener("click", submit);
 inp.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
 
-/* Robots without a task wander around the house. */
-async function idle(r) {
-  await sleep(rand(500, 4500));
-  for (;;) {
-    if (r.busy) { await sleep(700); continue; }
-    if (!await go(r, wander())) continue;
-    await sleep(rand(1200, 3500));
-  }
-}
+/* Robots stay seated in their own offices whenever they are not collaborating. */
+R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
 
 const themeButton = document.getElementById("theme");
 const root = document.documentElement;
@@ -520,7 +515,7 @@ fetch("/api/status").then(async r => {
   const count = Array.isArray(status.providers) ? status.providers.length : 0;
   nowEl.textContent = `${count} AI provider${count === 1 ? "" : "s"} configured • ${R.length} robots moving`;
 }).catch(err => { nowEl.textContent = `Office animation is running • AI connection: ${err.message}`; });
-R.forEach(r => idle(r));
+R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
 requestAnimationFrame(tick);
 </script>
 </body>
