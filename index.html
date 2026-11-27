@@ -108,6 +108,10 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
     <h2>AI team result</h2>
     <pre id="answerText" style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:14px;line-height:1.5;background:var(--card);border:1px solid var(--frame);border-radius:10px;padding:12px"></pre>
   </section>
+  <section id="savedWork" class="activity" aria-label="Saved work history">
+    <h2>Saved work history</h2>
+    <div id="savedWorkList"><p class="note">Loading saved work…</p></div>
+  </section>
   <section class="activity" aria-label="Recent robot activity">
     <h2>Recent activity</h2>
     <ul id="log"></ul>
@@ -460,6 +464,7 @@ async function run(t, lead, helpers) {
     console.error("Task animation failed:", err);
     addLog(lead, `Task failed: ${err.message}`);
     nowEl.textContent = "The task could not finish. Check the activity log.";
+    if (t.dbId) fetch("/api/tasks", {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:t.dbId,status:"failed"})}).catch(() => {});
   } finally {
     team.forEach(r => {
       r.busy = false;
@@ -540,6 +545,28 @@ async function restoreSavedTasks() {
       text: x.title || x.instruction, c: "#29b6f6", id: x.id, at: Date.parse(x.created_at || "") || Date.now()
     }));
     renderBoard();
+    const history = document.getElementById("savedWorkList");
+    history.replaceChildren();
+    if (!data.tasks?.length) {
+      history.textContent = "No saved tasks yet. Completed work will appear here.";
+    } else {
+      data.tasks.forEach(task => {
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        summary.textContent = (task.title || task.instruction || "Untitled task") + " — " + task.status;
+        const prompt = document.createElement("p");
+        prompt.textContent = task.instruction || "";
+        const output = document.createElement("pre");
+        output.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:13px;line-height:1.5";
+        const messages = (task.robot_task_messages || []).map(m => {
+          const who = m.robot_agents?.name || "Robot";
+          return who + ":\\n" + m.content;
+        }).join("\\n\\n");
+        output.textContent = task.result || messages || "No output was saved for this task.";
+        details.append(summary, prompt, output);
+        history.append(details);
+      });
+    }
     if (data.tasks?.length) addLog({n:"Database",c:"#29b6f6"}, "Restored " + data.tasks.length + " saved task(s).");
   } catch (error) {
     nowEl.textContent = "Database not connected: tasks cannot be saved yet.";
