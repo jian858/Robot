@@ -34,7 +34,7 @@ main{max-width:780px;margin:0 auto}
 h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
 
 .bar{display:flex;gap:8px;margin:0 0 8px}
-#task{flex:1;min-width:0;padding:11px 14px;border:2px solid var(--frame);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:16px}
+#task{flex:1;min-width:0;min-height:48px;resize:vertical;padding:11px 14px;border:2px solid var(--frame);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:16px;line-height:1.4}
 #go{padding:0 16px;border:0;border-radius:12px;background:var(--ink);color:var(--page);font:inherit;font-size:16px;font-weight:600;cursor:pointer}
 #task:focus-visible,#go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #now{margin:0 0 12px;color:var(--mute);font-size:14px;min-height:1.4em}
@@ -112,7 +112,7 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
     <button id="theme" class="secondary" type="button" aria-label="Switch color theme">Dark mode</button>
   </header>
   <div class="bar">
-    <input id="task" type="text" maxlength="12000" placeholder="Describe the exact work you want, the output format, and any dates or rules" autocomplete="off" enterkeyhint="send" aria-label="Task">
+    <textarea id="task" rows="3" maxlength="12000" placeholder="Describe the exact work you want. Include dates, format, details, and rules." aria-label="Task instructions"></textarea>
     <button id="go" type="button">Start task</button>
   </div>
   <div class="toolbar">
@@ -508,7 +508,7 @@ function submit() {
   pump();
 }
 document.getElementById("go").addEventListener("click", submit);
-inp.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+inp.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submit(); });
 
 /* Robots stay seated in their own offices whenever they are not collaborating. */
 R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
