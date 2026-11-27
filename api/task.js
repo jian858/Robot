@@ -33,11 +33,14 @@ export default async function handler(req, res) {
     const result = await execute(task.trim(), agent, body.context || []);
     const agents = await dbRequest("/robot_agents?select=id,slug&slug=eq." + encodeURIComponent(agent) + "&limit=1");
     if (!agents.length) throw new Error("Robot agent is missing from the database: " + agent);
+    const previousRuns = await dbRequest("/robot_task_runs?select=run_number&task_id=eq." + encodeURIComponent(body.taskId) + "&order=run_number.desc&limit=1");
+    const runNumber = Number(previousRuns[0]?.run_number || 0) + 1;
     const runRows = await dbRequest("/robot_task_runs", {
       method: "POST",
       body: JSON.stringify([{
         task_id: body.taskId,
         agent_id: agents[0].id,
+        run_number: runNumber,
         status: "completed",
         provider: result.provider || "unknown",
         model: result.model || "unknown",
