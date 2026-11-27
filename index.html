@@ -151,11 +151,6 @@ h1{font-size:clamp(25px,5vw,34px);letter-spacing:-.6px}
 .note{line-height:1.55}
 @media(max-width:520px){body{padding:12px 11px 22px}.top{padding:14px;border-radius:16px}.bar{padding:9px;gap:7px}#go{min-width:82px;padding:0 12px;font-size:14px}#house{padding:5px;border-radius:18px}.activity,.memory-core{padding:14px;border-radius:15px}}
 
-.search-panel{margin:14px 0;padding:16px;border:1px solid color-mix(in srgb,var(--frame) 48%,transparent);border-radius:18px;background:var(--card);box-shadow:0 8px 24px rgba(30,45,90,.055)}
-.search-panel h2{font-size:17px;margin:0 0 6px}.search-panel p{font-size:12px;line-height:1.45;color:var(--mute);margin:0 0 10px}
-.search-row{display:flex;gap:8px}.search-row input{flex:1;min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--frame);border-radius:11px;background:var(--page);color:var(--ink);font:inherit}
-.search-engines{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.search-engines a{display:inline-flex;align-items:center;padding:8px 11px;border:1px solid var(--frame);border-radius:10px;background:var(--page);color:var(--ink);font-size:13px;text-decoration:none}.search-engines a:focus-visible,.search-row input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}.search-engines a:hover{border-color:var(--accent);background:color-mix(in srgb,var(--page) 80%,var(--accent))}
-@media(max-width:520px){.search-panel{padding:14px}.search-row{flex-direction:column}.search-row button{min-height:42px}}
 </style>
 </head>
 <body>
@@ -175,17 +170,6 @@ h1{font-size:clamp(25px,5vw,34px);letter-spacing:-.6px}
     <p id="now" role="status" aria-live="polite"></p>
     <button id="clear" class="secondary" type="button">Clear board view</button>
   </div>
-
-  <section class="search-panel" aria-label="Free web search">
-    <h2>Free web search</h2>
-    <p>No AI key needed. Search engines open directly in your browser. Choose one engine below; Chrome is the browser that opens the results, not a search engine.</p>
-    <form id="webSearchForm" class="search-row">
-      <input id="webSearchQuery" type="search" maxlength="500" placeholder="What do you want to search on the web?" aria-label="Web search query" required>
-      <button id="webSearchGo" class="secondary" type="submit">Search Google</button>
-    </form>
-    <div id="webSearchEngines" class="search-engines" aria-label="Choose a search engine"></div>
-    <p id="webSearchStatus" aria-live="polite" style="margin:9px 0 0">Google · Bing · DuckDuckGo · Brave · Yahoo · Ecosia · Mojeek · Startpage · Qwant</p>
-  </section>
   <div id="house"><div id="board" class="board"></div><div id="memoryOrbOffice" aria-label="Central office memory orb"><div class="memory-orb" aria-hidden="true"></div><div class="memory-platform" aria-hidden="true"></div><span>MEMORY CORE</span></div></div>
   <section class="memory-core" aria-label="Central memory records">
     <h2>Office memory records</h2>
@@ -224,25 +208,6 @@ const searchEngines = [
   ["Startpage",q=>"https://www.startpage.com/sp/search?query="+encodeURIComponent(q)],
   ["Qwant",q=>"https://www.qwant.com/?q="+encodeURIComponent(q)]
 ];
-const webSearchForm=document.getElementById("webSearchForm");
-const webSearchQuery=document.getElementById("webSearchQuery");
-const webSearchEngines=document.getElementById("webSearchEngines");
-const webSearchStatus=document.getElementById("webSearchStatus");
-function renderSearchLinks(query){
-  webSearchEngines.replaceChildren();
-  const q=query.trim();
-  if(!q){webSearchStatus.textContent="Enter a phrase, then choose a search engine.";return;}
-  for(const [name,makeUrl] of searchEngines){
-    const a=document.createElement("a");a.textContent="Search "+name;a.href=makeUrl(q);a.target="_blank";a.rel="noopener noreferrer";
-    webSearchEngines.append(a);
-  }
-  webSearchStatus.textContent="Choose an engine to open its live results in a new browser tab. No AI API key is used.";
-}
-webSearchForm.addEventListener("submit",event=>{
-  event.preventDefault();const q=webSearchQuery.value.trim();if(!q)return;
-  window.open(searchEngines[0][1](q),"_blank","noopener,noreferrer");renderSearchLinks(q);
-});
-webSearchQuery.addEventListener("input",()=>renderSearchLinks(webSearchQuery.value));
 /* ---------- data ---------- */
 const BOTS = [
   {n:"Boss", j:"Team manager", c:"#f59e5b", p:"★", agent:"boss"},
