@@ -9,7 +9,7 @@ async function readBody(req) {
   let body = "";
   for await (const chunk of req) {
     body += chunk;
-    if (body.length > 100000) throw new Error("Request too large.");
+    if (body.length > 1000000) throw new Error("Request too large. Maximum request size is 1 MB.");
   }
   return JSON.parse(body || "{}");
 }
@@ -36,12 +36,12 @@ const server = http.createServer(async (req, res) => {
     return res.end(html);
   }
 
-  if (req.url === "/api/status") {
+  const pathname = new URL(req.url, "http://localhost").pathname;\n  if (pathname === "/api/status") {
     if (req.method !== "GET") return send(res, 405, { error: "Use GET for status." });
     return send(res, 200, status());
   }
 
-  if (req.url === "/api/task") {
+  if (pathname === "/api/task") {
     if (req.method !== "POST") return send(res, 405, { error: "Use POST for robot tasks." });
     try {
       const body = await readBody(req);
