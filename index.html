@@ -84,6 +84,22 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
 #go:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:380px){.top{align-items:center}.toolbar{align-items:flex-start}.secondary{font-size:12px;padding:7px 8px}}
 
+
+.memory-core{margin:22px auto 8px;padding:14px;border:1px solid var(--frame);border-radius:18px;background:var(--card);text-align:center;box-shadow:0 8px 24px rgba(20,30,60,.08)}
+.memory-core h2{font-size:17px;margin:0 0 4px}
+.memory-core .hint{font-size:12px;color:var(--mute);margin:0}
+.orb-stage{height:174px;display:grid;place-items:center;position:relative;overflow:hidden}
+.memory-orb{position:relative;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 32% 25%,#f3ffff 0 4%,#7df9ff 8%,#3a8ef2 28%,#5a3bb9 58%,#141a46 82%);box-shadow:0 0 22px rgba(76,184,255,.6),inset -12px -15px 24px rgba(4,8,35,.55),inset 8px 7px 16px rgba(255,255,255,.65);animation:orbPulse 4s ease-in-out infinite}
+.memory-orb:before{content:"";position:absolute;inset:-13px;border:1px solid rgba(92,185,255,.65);border-radius:50%;transform:rotateX(68deg) rotateZ(-18deg);box-shadow:0 0 16px rgba(82,174,255,.35)}
+.memory-orb:after{content:"";position:absolute;inset:14px 20px;border-radius:50%;border:1px solid rgba(255,255,255,.5);transform:rotate(35deg)}
+.memory-platform{position:absolute;bottom:18px;width:190px;height:28px;border-radius:50%;background:linear-gradient(180deg,#8bd9ff,#344c9e 55%,#17234d);border:2px solid #9bdcff;box-shadow:0 8px 14px rgba(28,72,160,.28),0 0 18px rgba(83,172,255,.4)}
+.memory-platform:before{content:"";position:absolute;left:12%;right:12%;top:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.7)}
+@keyframes orbPulse{50%{filter:brightness(1.18);transform:translateY(-4px)}}
+.memory-stats{font-size:13px;color:var(--mute);margin:0 0 10px}
+#memoryFacts{display:grid;gap:7px;text-align:left;max-height:220px;overflow:auto}
+.memory-fact{padding:9px 10px;border:1px solid var(--frame);border-radius:10px;background:var(--page);font-size:12px;line-height:1.4}
+.memory-fact b{display:block;font-size:13px;margin-bottom:3px}
+@media(prefers-reduced-motion:reduce){.memory-orb{animation:none}}
 </style>
 </head>
 <body>
@@ -96,7 +112,7 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
     <button id="theme" class="secondary" type="button" aria-label="Switch color theme">Dark mode</button>
   </header>
   <div class="bar">
-    <input id="task" type="text" maxlength="2000" placeholder="Type a task, like plan a trip to Madrid" autocomplete="off" enterkeyhint="send" aria-label="Task">
+    <input id="task" type="text" maxlength="12000" placeholder="Describe the exact work you want, the output format, and any dates or rules" autocomplete="off" enterkeyhint="send" aria-label="Task">
     <button id="go" type="button">Start task</button>
   </div>
   <div class="toolbar">
@@ -104,6 +120,13 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
     <button id="clear" class="secondary" type="button">Clear board view</button>
   </div>
   <div id="house"><div id="board" class="board"></div></div>
+  <section class="memory-core" aria-label="Central memory core">
+    <h2>Central Memory Core</h2>
+    <p class="hint">The office's shared memory — tasks, decisions, lessons, and completed work</p>
+    <div class="orb-stage"><div class="memory-orb" aria-hidden="true"></div><div class="memory-platform" aria-hidden="true"></div></div>
+    <p id="memoryStats" class="memory-stats" aria-live="polite">Connecting to permanent memory…</p>
+    <div id="memoryFacts"><p class="note">Saved memories will appear here.</p></div>
+  </section>
   <section id="answer" class="activity" aria-label="AI team result" hidden>
     <h2>AI team result</h2>
     <pre id="answerText" style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:14px;line-height:1.5;background:var(--card);border:1px solid var(--frame);border-radius:10px;padding:12px"></pre>
@@ -381,90 +404,72 @@ const showNow = () => {
 async function run(t, lead, helpers) {
   const team = [lead, ...helpers], tag = short(t.text);
   team.forEach(r => { r.busy = true; });
+  active.add(t);
+  showNow();
   try {
     const saved = await fetch("/api/tasks", {
       method: "POST", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({title: t.text.slice(0, 200), instruction: t.text})
     });
     const savedType = saved.headers.get("content-type") || "";
-    if (!savedType.includes("application/json")) throw new Error("Database setup is required before tasks can be saved.");
+    if (!savedType.includes("application/json")) throw new Error("The private database API did not return JSON.");
     const savedData = await saved.json();
-    if (!saved.ok) throw new Error(savedData.error || "Could not save task to database.");
+    if (!saved.ok) throw new Error(savedData.error || "Could not save this task.");
     t.dbId = savedData.task.id;
-  } catch (saveError) {
-    addLog(lead, "Database save failed: " + saveError.message);
-    nowEl.textContent = "Not saved: connect the private Supabase database before starting work.";
-    team.forEach(r => { r.busy = false; });
-    showNow();
-    return;
-  }
-  active.add(t);
-  showNow();
-  try {
-    await Promise.all(team.map(r => go(r, seat(r))));
+    addLog(lead, "Task saved to the permanent queue. The server team can continue if this page closes.");
     await go(lead, DESK);
     await say(YOU, t.text);
-    await say(lead, `Got it! I'll bring the team together for “${tag}”.`);
+    await say(lead, "I have saved the full instruction. The background team is taking over.");
     await go(lead, seat(lead));
-    await say(lead, "Everyone, let's discuss this task before we begin.");
-    const responses = [];
-    const conversation = [];
-    for (let index = 0; index < team.length; index++) {
-      const robot = team[index];
-      const partner = team[(index + 1) % team.length];
-      const [question] = TALK[robot.n];
-      await go(robot, visit(robot));
-      await say(robot, `${robot.n}: ${question}`);
-      await go(partner, meet(robot));
-      await say(partner, `${partner.n}: Let's share our specialist perspective and help ${robot.n}.`);
-      await say(robot, `${robot.n}: Thanks. I'll include that in my work.`);
-      try {
-        const response = await fetch("/api/task", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({task: t.text, taskId: t.dbId, agent: robot.agent, context: conversation})
-        });
-        const contentType = response.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          const preview = (await response.text()).slice(0, 160).replace(/\s+/g, " ");
-          throw new Error(`AI endpoint returned a webpage (HTTP ${response.status}). ${preview}`);
-        }
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || `${robot.n} could not complete the task.`);
-        const result = data.result || "";
-        responses.push({robot, result});
-        conversation.push({robot: robot.n, message: result});
-        addLog(robot, `Finished its part using ${data.provider || "an AI provider"}.`);
-        await say(robot, `${robot.n}: ${result.slice(0, 240)}${result.length > 240 ? "…" : ""}`);
-      } catch (robotError) {
-        conversation.push({robot: robot.n, message: `Could not respond: ${robotError.message}`});
-        addLog(robot, `Could not finish its part: ${robotError.message}`);
-        await say(robot, `${robot.n}: My AI connection failed. The others can continue.`);
+    const seen = new Set();
+    const started = Date.now();
+    let completedTask = null;
+    while (Date.now() - started < 30 * 60 * 1000) {
+      const response = await fetch("/api/tasks", {cache:"no-store"});
+      const type = response.headers.get("content-type") || "";
+      if (!type.includes("application/json")) throw new Error("Could not read the task queue.");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not refresh task status.");
+      updateMemoryCore(data.memories || []);
+      const current = (data.tasks || []).find(x => x.id === t.dbId);
+      if (!current) throw new Error("The saved task disappeared from task history.");
+      const messages = current.robot_task_messages || [];
+      for (const message of messages) {
+        if (seen.has(message.id)) continue;
+        seen.add(message.id);
+        const slug = message.robot_agents?.slug;
+        const robot = R.find(r => r.agent === slug) || lead;
+        addLog(robot, "Saved a new contribution to the task memory.");
+        await go(robot, visit(robot));
+        const spoken = String(message.content || "");
+        await say(robot, robot.n + ": " + spoken.slice(0, 220) + (spoken.length > 220 ? "…" : ""));
+        await go(robot, seat(robot));
       }
-      await go(partner, seat(partner));
-      await go(robot, seat(robot));
-      robot.el.classList.add("work");
+      const progress = Math.min(9, Number(current.worker_next_agent || 0));
+      nowEl.textContent = current.status === "completed"
+        ? "Task completed and saved permanently."
+        : current.status === "failed"
+          ? "Task failed: " + (current.error_message || "See saved work history.")
+          : "Background team working — " + progress + "/9 stages saved. You can close this page.";
+      if (current.status === "completed") { completedTask = current; break; }
+      if (current.status === "failed") throw new Error(current.error_message || "The background worker could not complete the task.");
+      await sleep(10000);
     }
-    if (!responses.length) throw new Error("All eight robots failed. Check server API keys, provider quotas and deployment settings.");
-    await go(lead, DESK);
-    await say(lead, "Team, I'm combining everyone's contributions now.");
-    const answer = responses.map(x => `${x.robot.n}:\n${x.result}`).join("\n\n") +
-      (responses.length < team.length ? `\n\n${team.length - responses.length} robot(s) could not complete their part. The other robots still finished.` : "");
+    if (!completedTask) {
+      addLog(lead, "Still processing in the background. Reopen the office to check saved work.");
+      nowEl.textContent = "Still running in the background. Your task remains saved.";
+      return;
+    }
+    const answer = completedTask.result || "The team completed the task but returned no final text.";
     showResult(answer, lead);
-    const finishResponse = await fetch("/api/tasks", {
-      method: "PATCH", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({id: t.dbId, status:"completed", result: answer})
-    });
-    if (!finishResponse.ok) addLog(lead, "Warning: final result could not be marked completed in database.");
     await go(lead, BOARD);
     pin({text: t.text, c: lead.c, id: t.id, at: Date.now()});
-    await say(lead, `Done! “${tag}” is on your board.`);
-    await say(YOU, `Great teamwork! ${responses.length} robots contributed.`);
+    await say(lead, "Done. The final answer and team work are saved in the Memory Core.");
+    await say(YOU, "The completed work is stored permanently.");
   } catch (err) {
-    console.error("Task animation failed:", err);
-    addLog(lead, `Task failed: ${err.message}`);
-    nowEl.textContent = "The task could not finish. Check the activity log.";
-    if (t.dbId) fetch("/api/tasks", {method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:t.dbId,status:"failed"})}).catch(() => {});
+    console.error("Background task monitor:", err);
+    addLog(lead, "Task monitor: " + err.message);
+    nowEl.textContent = "Task is saved. " + err.message;
   } finally {
     team.forEach(r => {
       r.busy = false;
@@ -534,6 +539,31 @@ document.getElementById("clear").addEventListener("click", () => {
 
 renderBoard();
 showNow();
+function updateMemoryCore(memories) {
+  const stats = document.getElementById("memoryStats");
+  const facts = document.getElementById("memoryFacts");
+  if (!stats || !facts) return;
+  stats.textContent = memories.length + " saved memory records • shared across all 8 specialists";
+  facts.replaceChildren();
+  if (!memories.length) {
+    const empty = document.createElement("p");
+    empty.className = "note";
+    empty.textContent = "No long-term memories yet. Completed tasks will teach the office.";
+    facts.append(empty);
+    return;
+  }
+  memories.slice(0,8).forEach(memory => {
+    const item = document.createElement("div");
+    item.className = "memory-fact";
+    const title = document.createElement("b");
+    title.textContent = memory.title || "Saved memory";
+    const body = document.createElement("span");
+    body.textContent = String(memory.content || "").slice(0,420);
+    item.append(title,body);
+    facts.append(item);
+  });
+}
+
 async function restoreSavedTasks() {
   try {
     const response = await fetch("/api/tasks");
@@ -545,15 +575,16 @@ async function restoreSavedTasks() {
       text: x.title || x.instruction, c: "#29b6f6", id: x.id, at: Date.parse(x.created_at || "") || Date.now()
     }));
     renderBoard();
+    updateMemoryCore(data.memories || []);
     const history = document.getElementById("savedWorkList");
     history.replaceChildren();
     if (!data.tasks?.length) {
-      history.textContent = "No saved tasks yet. Completed work will appear here.";
+      history.textContent = "No saved tasks yet. New work is queued for the background team.";
     } else {
       data.tasks.forEach(task => {
         const details = document.createElement("details");
         const summary = document.createElement("summary");
-        summary.textContent = (task.title || task.instruction || "Untitled task") + " — " + task.status;
+        summary.textContent = (task.title || task.instruction || "Untitled task") + " — " + task.status + (task.status === "queued" || task.status === "running" ? " (" + Math.min(9,Number(task.worker_next_agent||0)) + "/9 stages)" : "");
         const prompt = document.createElement("p");
         prompt.textContent = task.instruction || "";
         const output = document.createElement("pre");
