@@ -1,4 +1,17 @@
 import { dbRequest, requireDatabase } from "./db.js";
+function selectSpecialists(instruction) {
+  const text = instruction.toLowerCase();
+  const rules = [
+    ["coder", /\b(code|coding|program|programming|software|website|web app|app|api|database|bug|debug|fix|build|develop|deploy|script|html|css|javascript|python)\b/],
+    ["writer", /\b(write|writing|draft|email|letter|essay|article|blog|story|poem|caption|post|speech|script)\b/],
+    ["editor", /\b(edit|editing|proofread|grammar|rewrite|revise|polish|format|summari[sz]e|translate)\b/],
+    ["analyst", /\b(analy[sz]e|analysis|calculate|calculation|statistics|statistical|data|budget|forecast|compare|evaluate|financial|research report)\b/],
+    ["reviewer", /\b(review|audit|security|inspect|critique|check|assess|verify|validate|risk|compliance)\b/],
+    ["tester", /\b(test|testing|test cases|qa|quality assurance|validate|verification|debug|troubleshoot)\b/]
+  ];
+  return rules.filter(([, pattern]) => pattern.test(text)).map(([slug]) => slug);
+}
+
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
@@ -23,16 +36,17 @@ export default async function handler(req, res) {
       const instruction = typeof body.instruction === "string" ? body.instruction.trim() : "";
       const title = typeof body.title === "string" ? body.title.trim() : "";
       if (!instruction || instruction.length > 20000 || !title) return res.status(400).json({ error: "Enter a task from 1 to 20,000 characters." });
+      const selectedAgents = selectSpecialists(instruction);
       const rows = await dbRequest("/robot_tasks", {
         method: "POST",
         body: JSON.stringify([{
           title: title.slice(0, 200), instruction, status: "queued",
-          input_data: { source: "Robot Office AI", worker: "supabase-cron", interpretation: "full-task" },
+          input_data: { source: "Robot Office AI", worker: "supabase-cron", interpretation: "full-task", selected_agents: selectedAgents },
           worker_next_agent: 0, worker_failures: 0, worker_lock_until: null
         }]),
         prefer: "return=representation"
       });
-      return res.status(201).json({ task: rows[0], queued: true, message: "Saved. The office worker will continue in the background." });
+      return res.status(201).json({ task: rows[0], selected_agents: selectedAgents, queued: true, message: "Saved. Only relevant specialists will join; Researcher and Boss coordinate every task." });
     }
     if (req.method === "PATCH") {
       if (typeof body.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.id)) return res.status(400).json({ error: "Valid task ID required." });
