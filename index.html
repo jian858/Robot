@@ -91,7 +91,7 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
   <header class="top">
     <div>
       <h1>Robot Office AI</h1>
-      <p class="subtitle">Eight specialist robots, working together on your tasks.</p>
+      <p class="subtitle">All eight specialist robots work together on every task.</p>
     </div>
     <button id="theme" class="secondary" type="button" aria-label="Switch color theme">Dark mode</button>
   </header>
@@ -388,8 +388,8 @@ async function run(t, lead, helpers) {
     await say(lead, "Connecting to the AI team…");
     const responses = await Promise.all(team.map(async (robot) => {
       const [ask] = TALK[robot.n];
-      await go(lead, visit(robot));
-      await say(lead, robot === lead ? `Leading: “${tag}”` : ask);
+      await go(robot, visit(robot));
+      await say(robot, robot === lead ? `Leading: “${tag}”` : ask);
       await say(robot, "Working on your task…");
       const response = await fetch("/api/task", {
         method: "POST",
@@ -427,14 +427,14 @@ async function run(t, lead, helpers) {
   }
 }
 
-/* Start waiting tasks whenever three robots are free: the best match leads, the next two help. */
+/* Every available specialist joins each task; the best match is the lead. */
 function pump() {
   while (queue.length) {
     const free = R.filter(r => !r.busy);
-    if (free.length < 3) break;
+    if (free.length < R.length) break;
     const t = queue.shift();
     free.sort((a, b) => fit(t, b) - fit(t, a) || a.i - b.i);
-    run(t, free[0], free.slice(1, 3));
+    run(t, free[0], free.slice(1));
   }
   showNow();
 }
