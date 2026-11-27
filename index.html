@@ -592,7 +592,7 @@ function submit() {
     return;
   }
   inp.value = "";
-  if (/^(?:all\\s+workers?|all\\s+robots?|everyone|team)\\b.*\\b(come|gather|meet|report)\\b.*\\b(office|meeting)\\b/i.test(text)) {
+  if (/^(?:all\s+workers?|all\s+robots?|everyone|team)\b.*\b(come|gather|meet|report)\b.*\b(office|meeting)\b/i.test(text)) {
     gatherAllRobots();
     return;
   }
