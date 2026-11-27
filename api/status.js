@@ -21,7 +21,7 @@ export default async function handler(req,res){
    persistence:databaseConnected,
    database:databaseMessage,
    backgroundWorker:"Supabase Cron every minute; up to 3 stages per run",
-   backgroundWorkerSetup:"Add GEMINI_API_KEY to Supabase Edge Function Secrets. Vercel keys are separate.",
+   backgroundWorkerSetup:"Add OPENAI_API_KEY and/or XAI_API_KEY to Supabase Edge Function Secrets. Vercel keys are separate.",
    memoryCore:"robot_memory"
  });
 }
