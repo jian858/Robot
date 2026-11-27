@@ -1,33 +1,51 @@
 # Robot Office AI
 
-A Node.js app with six specialist robots and five supported AI providers.
+Robot Office AI is an eight-specialist team workspace. Every task is assigned to all eight robots: Boss, Researcher, Coder, Editor, Analyst, Writer, Reviewer, and Tester. Each specialist receives the earlier team discussion before writing its contribution. A provider failure for one robot does not stop the rest.
 
-## Robot team
-- Boss — team lead, task breakdown, coordination (OpenAI preferred)
-- Researcher — fact-finding and source evaluation (Gemini preferred; no live web search connected yet)
-- Coder — programming and debugging (Groq preferred)
-- Editor — grammar, clarity, and document editing (Mistral preferred)
-- Analyst — data analysis and reasoning (Groq preferred)
-- Writer — drafting and content creation (OpenAI preferred)
-- Reviewer — quality, security, and edge-case review (Gemini preferred)
-- Tester — test plans and validation steps (Cloudflare preferred)
+## Deploy
 
-Each robot uses its preferred configured provider first, then tries other configured providers as fallbacks. The Boss currently produces a coordination plan; it does not yet dispatch parallel sub-agent jobs.
+This repository is configured for Vercel:
+- Static app: `index.html`
+- Task API: `POST /api/task`
+- Status API: `GET /api/status`
+- Vercel Functions use the native `api/` directory routing.
 
-## Providers
-OpenAI, Gemini, Groq, Mistral, and Cloudflare Workers AI. Cloudflare requires both an API token and account ID.
+Vercel project: https://vercel.com/murmur6/robot-office-ai  
+App: https://robot-office-ai-murmur6.vercel.app
 
-## Run locally
-1. Use Node.js 20 or newer.
-2. Copy `.env.example` to `.env`.
-3. Add newly generated API keys to the server environment.
-4. Run `npm start`.
-5. Open http://localhost:3000.
+## Required AI environment variables
 
-Never commit `.env`, expose service-role credentials, or put API keys in browser code.
+Add at least one provider key in **Vercel → robot-office-ai → Settings → Environment Variables**, then redeploy. Add secrets only in Vercel; never commit them to GitHub or paste them into chat.
 
-## Supabase
-The app is configured for the separate Robot Office AI Supabase project. Persistence stays disabled until `SUPABASE_SERVICE_ROLE_KEY` is configured server-side. The task insert uses fields `id`, `agent_key`, `task_text`, `result_text`, `provider`, and `status`; verify that these match the deployed table schema before enabling.
+- `OPENAI_API_KEY`
+- `GEMINI_API_KEY`
+- `GROQ_API_KEY`
+- `MISTRAL_API_KEY`
+- `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
 
-## Production warning
-This starter has no user authentication or rate limiting. Do not expose its task endpoint publicly until access control, rate limits, usage quotas, and monitoring are added. The Researcher has no live web-search integration, and the robots do not yet execute external actions.
+Optional model overrides:
+- `OPENAI_MODEL`
+- `GEMINI_MODEL`
+- `GROQ_MODEL`
+- `MISTRAL_MODEL`
+- `CLOUDFLARE_MODEL`
+
+At least one provider must be configured. Each robot tries its preferred provider first, then falls back to every other configured provider.
+
+## Check the app
+
+- Open `/api/status`. It returns the configured provider names and all eight robot IDs without exposing secrets.
+- `POST /api/task` accepts JSON: `{"task":"Your task","agent":"researcher","context":[]}`.
+- The task endpoint returns a JSON error if no provider is configured or all configured providers fail.
+
+## Local development
+
+Use Node.js 20 or newer:
+
+```sh
+npm start
+```
+
+Then open http://localhost:3000.
+
+Set the same environment variables in your local shell before starting the server. Do not commit a real `.env` file.
