@@ -377,6 +377,23 @@ const showNow = () => {
 async function run(t, lead, helpers) {
   const team = [lead, ...helpers], tag = short(t.text);
   team.forEach(r => { r.busy = true; });
+  try {
+    const saved = await fetch("/api/tasks", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({title: t.text.slice(0, 200), instruction: t.text})
+    });
+    const savedType = saved.headers.get("content-type") || "";
+    if (!savedType.includes("application/json")) throw new Error("Database setup is required before tasks can be saved.");
+    const savedData = await saved.json();
+    if (!saved.ok) throw new Error(savedData.error || "Could not save task to database.");
+    t.dbId = savedData.task.id;
+  } catch (saveError) {
+    addLog(lead, "Database save failed: " + saveError.message);
+    nowEl.textContent = "Not saved: connect the private Supabase database before starting work.";
+    team.forEach(r => { r.busy = false; });
+    showNow();
+    return;
+  }
   active.add(t);
   showNow();
   try {
@@ -401,7 +418,7 @@ async function run(t, lead, helpers) {
         const response = await fetch("/api/task", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({task: t.text, agent: robot.agent, context: conversation})
+          body: JSON.stringify({task: t.text, taskId: t.dbId, agent: robot.agent, context: conversation})
         });
         const contentType = response.headers.get("content-type") || "";
         if (!contentType.includes("application/json")) {
@@ -430,6 +447,11 @@ async function run(t, lead, helpers) {
     const answer = responses.map(x => `${x.robot.n}:\n${x.result}`).join("\n\n") +
       (responses.length < team.length ? `\n\n${team.length - responses.length} robot(s) could not complete their part. The other robots still finished.` : "");
     showResult(answer, lead);
+    const finishResponse = await fetch("/api/tasks", {
+      method: "PATCH", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({id: t.dbId, status:"completed", result: answer})
+    });
+    if (!finishResponse.ok) addLog(lead, "Warning: final result could not be marked completed in database.");
     await go(lead, BOARD);
     pin({text: t.text, c: lead.c, id: t.id, at: Date.now()});
     await say(lead, `Done! “${tag}” is on your board.`);
@@ -507,6 +529,23 @@ document.getElementById("clear").addEventListener("click", () => {
 
 renderBoard();
 showNow();
+async function restoreSavedTasks() {
+  try {
+    const response = await fetch("/api/tasks");
+    const type = response.headers.get("content-type") || "";
+    if (!type.includes("application/json")) throw new Error("Database is not configured.");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not load saved work.");
+    done = (data.tasks || []).filter(x => x.status === "completed").slice(0,20).map(x => ({
+      text: x.title || x.instruction, c: "#29b6f6", id: x.id, at: Date.parse(x.created_at || "") || Date.now()
+    }));
+    renderBoard();
+    if (data.tasks?.length) addLog({n:"Database",c:"#29b6f6"}, "Restored " + data.tasks.length + " saved task(s).");
+  } catch (error) {
+    nowEl.textContent = "Database not connected: tasks cannot be saved yet.";
+  }
+}
+restoreSavedTasks();
 fetch("/api/status").then(async r => {
   const type = r.headers.get("content-type") || "";
   if (!type.includes("application/json")) throw new Error("The deployed server has no JSON /api/status route yet.");
