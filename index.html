@@ -101,6 +101,13 @@ h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
 .memory-fact b{display:block;font-size:13px;margin-bottom:3px}
 @media(prefers-reduced-motion:reduce){.memory-orb{animation:none}}
 
+#memoryOrbOffice{position:absolute;z-index:3;left:39%;top:34.5%;width:22%;height:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;color:var(--ink);font-size:clamp(6px,1.7vw,9px);font-weight:600;letter-spacing:.8px;text-shadow:0 1px 4px var(--card)}
+#memoryOrbOffice .memory-orb{width:clamp(34px,10vw,64px);height:clamp(34px,10vw,64px);flex:none}
+#memoryOrbOffice .memory-orb:before{inset:-7px}
+#memoryOrbOffice .memory-orb:after{inset:8px 11px}
+#memoryOrbOffice .memory-platform{position:relative;bottom:auto;width:clamp(62px,17vw,110px);height:clamp(9px,2.5vw,15px);margin-top:-2px;flex:none}
+#memoryOrbOffice .memory-platform:before{height:2px;top:2px}
+#memoryOrbOffice span{margin-top:3px}
 /* Office refresh */
 :root{--accent:#6c7cff;--accent2:#38c8d5;--surface:var(--card)}
 body{min-height:100vh;background:radial-gradient(ellipse at 12% 0%,rgba(108,124,255,.14),transparent 34%),radial-gradient(ellipse at 92% 12%,rgba(56,200,213,.12),transparent 30%),var(--page)}
@@ -157,11 +164,10 @@ h1{font-size:clamp(25px,5vw,34px);letter-spacing:-.6px}
     <p id="now" role="status" aria-live="polite"></p>
     <button id="clear" class="secondary" type="button">Clear board view</button>
   </div>
-  <div id="house"><div id="board" class="board"></div></div>
-  <section class="memory-core" aria-label="Central memory core">
-    <h2>Central Memory Core</h2>
-    <p class="hint">The office's shared memory — tasks, decisions, lessons, and completed work</p>
-    <div class="orb-stage"><div class="memory-orb" aria-hidden="true"></div><div class="memory-platform" aria-hidden="true"></div></div>
+  <div id="house"><div id="board" class="board"></div><div id="memoryOrbOffice" aria-label="Central office memory orb"><div class="memory-orb" aria-hidden="true"></div><div class="memory-platform" aria-hidden="true"></div><span>MEMORY CORE</span></div></div>
+  <section class="memory-core" aria-label="Central memory records">
+    <h2>Office memory records</h2>
+    <p class="hint">The orb is inside the office. These are the shared memories stored inside it.</p>
     <p id="memoryStats" class="memory-stats" aria-live="polite">Connecting to permanent memory…</p>
     <div id="memoryFacts"><p class="note">Saved memories will appear here.</p></div>
   </section>
@@ -482,7 +488,7 @@ async function run(t, lead, helpers) {
         addLog(robot, "Saved a new contribution to the task memory.");
         await go(robot, visit(robot));
         const spoken = String(message.content || "");
-        await say(robot, robot.n + ": " + spoken.slice(0, 220) + (spoken.length > 220 ? "…" : ""));
+        await say(robot, robot.n + ": " + spoken.slice(0, 92) + (spoken.length > 92 ? "…" : ""));
         await go(robot, seat(robot));
       }
       const progress = Math.min(9, Number(current.worker_next_agent || 0));
@@ -531,7 +537,7 @@ function pump() {
     const free = R.filter(r => !r.busy);
     if (free.length < R.length) break;
     const t = queue.shift();
-    free.sort((a, b) => fit(t, b) - fit(t, a) || a.i - b.i);
+    free.sort((a, b) => (a.agent === "researcher" ? -100 : a.agent === "boss" ? -90 : 0) - (b.agent === "researcher" ? -100 : b.agent === "boss" ? -90 : 0) || fit(t, b) - fit(t, a) || a.i - b.i);
     run(t, free[0], free.slice(1));
   }
   showNow();
