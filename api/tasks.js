@@ -7,8 +7,11 @@ export default async function handler(req, res) {
   try {
     requireDatabase();
     if (req.method === "GET") {
-      const tasks = await dbRequest("/robot_tasks?select=id,title,instruction,status,result,created_at,completed_at,robot_task_messages(id,content,message_type,created_at,robot_agents(name,slug))&order=created_at.desc&limit=50");
-      return res.status(200).json({ tasks });
+      const [tasks, memories] = await Promise.all([
+        dbRequest("/robot_tasks?select=id,title,instruction,status,result,error_message,created_at,completed_at,worker_next_agent,robot_task_messages(id,content,message_type,created_at,robot_agents(name,slug))&order=created_at.desc&limit=50"),
+        dbRequest("/robot_memory?select=id,memory_type,title,content,importance,tags,created_at&order=importance.desc,created_at.desc&limit=20")
+      ]);
+      return res.status(200).json({ tasks, memories });
     }
     let body = req.body;
     if (typeof body === "string") {
@@ -22,10 +25,14 @@ export default async function handler(req, res) {
       if (!instruction || instruction.length > 20000 || !title) return res.status(400).json({ error: "Enter a task from 1 to 20,000 characters." });
       const rows = await dbRequest("/robot_tasks", {
         method: "POST",
-        body: JSON.stringify([{ title: title.slice(0,200), instruction, status: "running", input_data: { source: "Robot Office AI" }, started_at: new Date().toISOString() }]),
+        body: JSON.stringify([{
+          title: title.slice(0, 200), instruction, status: "queued",
+          input_data: { source: "Robot Office AI", worker: "supabase-cron", interpretation: "full-task" },
+          worker_next_agent: 0, worker_failures: 0, worker_lock_until: null
+        }]),
         prefer: "return=representation"
       });
-      return res.status(201).json({ task: rows[0] });
+      return res.status(201).json({ task: rows[0], queued: true, message: "Saved. The office worker will continue in the background." });
     }
     if (req.method === "PATCH") {
       if (typeof body.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.id)) return res.status(400).json({ error: "Valid task ID required." });
