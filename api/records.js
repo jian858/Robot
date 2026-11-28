@@ -3,7 +3,7 @@ const base = (process.env.SUPABASE_URL || "https://ioxighjshkphworqqnzt.supabase
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 function validCiphertext(value) {
   if (typeof value !== "string" || value.length > 2000000 || /\s/.test(value)) return false;
-  const parts = value.split(":");
+  const prefix = "ORG-PROTECTED-V1:PASSWORD-REQUIRED:ERROR-ONLY:";\n  const payload = value.startsWith(prefix) ? value.slice(prefix.length) : value;\n  const parts = payload.split(":");
   const b64 = /^[A-Za-z0-9_-]+$/;
   const canonical = value => { if (!b64.test(value) || value.length % 4 === 1) return null; const decoded = Buffer.from(value,"base64url"); return decoded.toString("base64url") === value ? decoded : null; };
   try {
@@ -37,7 +37,7 @@ export default async function handler(req,res) {
       const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
       const encrypted_payload = typeof req.body?.encrypted_payload === "string" ? req.body.encrypted_payload : "";
       if (!title || title.length > 120 || !validCiphertext(encrypted_payload))
-        return res.status(400).json({error:"Provide a title and structurally valid ORG1 or ORG2 ciphertext."});
+        return res.status(400).json({error:"Provide a title and structurally valid ORG-protected ciphertext."});
       options = {...options,method:"POST",headers:{...headers,"Prefer":"return=representation"},body:JSON.stringify({user_id:null,title,encrypted_payload})};
     } else {
       const id = typeof req.query?.id === "string" ? req.query.id : "";
