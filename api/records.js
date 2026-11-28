@@ -17,8 +17,8 @@ export default async function handler(req,res) {
     } else if (req.method === "POST") {
       const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
       const encrypted_payload = typeof req.body?.encrypted_payload === "string" ? req.body.encrypted_payload : "";
-      if (!title || title.length > 120 || !encrypted_payload.startsWith("ORG1:") || encrypted_payload.length > 2000000)
-        return res.status(400).json({error:"Provide a title (up to 120 characters) and valid ORG1 ciphertext."});
+      if (!title || title.length > 120 || !(encrypted_payload.startsWith("ORG1:") || encrypted_payload.startsWith("ORG2:")) || encrypted_payload.length > 2000000)
+        return res.status(400).json({error:"Provide a title (up to 120 characters) and supported encrypted ciphertext."});
       options = {...options,method:"POST",headers:{...headers,"Prefer":"return=representation"},body:JSON.stringify({user_id:null,title,encrypted_payload})};
     } else {
       const id = typeof req.query?.id === "string" ? req.query.id : "";
