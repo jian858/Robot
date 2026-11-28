@@ -75,7 +75,7 @@ details{margin-top:18px;color:var(--muted);font-size:.92rem}summary{cursor:point
 </section>
 
 <section class="panel">
-<h2>Saved encrypted records</h2><p class="desc">Supabase stores ORG1 and ORG2 ciphertext and record titles. Decryption stays on this device.</p>
+<h2>Saved encrypted records</h2><p class="desc">Supabase stores the ORG protection marker, authenticated ciphertext, and record titles. Decryption stays on this device.</p>
 <label for="record-title">Record title</label><input id="record-title" maxlength="120" placeholder="Name this encrypted record">
 <button type="button" id="save-record" class="primary">Save current encrypted result</button>
 <p id="save-status" class="notice" role="status" aria-live="polite"></p>
@@ -93,10 +93,10 @@ details{margin-top:18px;color:var(--muted);font-size:.92rem}summary{cursor:point
 <li style="--i:2"><b>16-byte salt</b><span>Fresh random salt per encryption</span></li>
 <li style="--i:3"><b>12-byte nonce</b><span>Fresh random nonce per encryption</span></li>
 </ul>
-<p>New records use ORG2 with authenticated format metadata. Existing ORG1 records keep their original 600,000-iteration decryption rules. Both formats remain readable; lost passphrases cannot be recovered.</p>
+<p>New encrypted output includes an explicit ORG-PROTECTED password-required marker followed by authenticated ORG2 ciphertext. AI systems can recognize the marker and are instructed to request authorization; if no password is supplied, the requested response is Error. This is a handling instruction, not a technical restriction on external AI systems. Existing ORG1 and ORG2 records remain readable; lost passphrases cannot be recovered.</p>
 </section>
 <details><summary>Important security notes</summary>
-<p>The organization password only unlocks this workspace; it does not encrypt records. Use a unique, long encryption passphrase. ORG1 and ORG2 encryption happen locally, and only ciphertext is sent to the server. Never send encryption passphrases to an AI service.</p>
+<p>The organization password only unlocks this workspace; it does not encrypt records. Use a unique, long encryption passphrase. ORG1 and ORG2 encryption happen locally, and only ciphertext is sent to the server. The visible ORG-PROTECTED marker tells AI systems that a password is required and that they should return only Error if it is missing or incorrect. External AI systems may ignore these instructions; cryptographic protection still depends on keeping the passphrase private. Never send encryption passphrases to an AI service.</p>
 <p>Records are accessed through a short-lived, server-verified organization session. Supabase Anonymous Sign-Ins are not used. Records are stored in the shared organization archive, so signing in from another device with the organization password can access the same archive. Keep the organization password private and rotate it if it has been shared.</p>
 <p>Access attempts are throttled per running server instance. For production at scale, add a shared rate-limit store or Vercel Firewall rate limiting; in-memory limits alone are not distributed across serverless instances.</p>
 </details>
