@@ -8,17 +8,35 @@ DROP POLICY IF EXISTS "Users read own ORG records" ON public.org_encrypted_recor
 DROP POLICY IF EXISTS "Users create own ORG records" ON public.org_encrypted_records;
 DROP POLICY IF EXISTS "Users delete own ORG records" ON public.org_encrypted_records;
 
+-- This archive is organization-wide. Refuse to silently convert any
+-- existing user-owned records into shared records.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.org_encrypted_records WHERE user_id IS NOT NULL) THEN
+    RAISE EXCEPTION 'ORG archive migration stopped: user-owned records exist; review and migrate them explicitly before enabling organization-wide access.';
+  END IF;
+END
+$$;
+ALTER TABLE public.org_encrypted_records ALTER COLUMN user_id DROP NOT NULL;
+
 REVOKE ALL PRIVILEGES ON TABLE public.org_encrypted_records
   FROM PUBLIC, anon, authenticated, service_role;
 GRANT SELECT, INSERT, DELETE ON TABLE public.org_encrypted_records TO service_role;
 
-ALTER TABLE public.org_encrypted_records
-  ADD CONSTRAINT org_encrypted_records_org1_format_check
-  CHECK (encrypted_payload ~ '^ORG1:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$');
-
-ALTER TABLE public.org_encrypted_records
-  ADD CONSTRAINT org_encrypted_records_org_scope_check
-  CHECK (user_id IS NULL);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.org_encrypted_records'::regclass AND conname='org_encrypted_records_org1_format_check') THEN
+    ALTER TABLE public.org_encrypted_records
+      ADD CONSTRAINT org_encrypted_records_org1_format_check
+      CHECK (encrypted_payload ~ '^ORG1:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.org_encrypted_records'::regclass AND conname='org_encrypted_records_org_scope_check') THEN
+    ALTER TABLE public.org_encrypted_records
+      ADD CONSTRAINT org_encrypted_records_org_scope_check
+      CHECK (user_id IS NULL);
+  END IF;
+END
+$$;
 
 COMMENT ON TABLE public.org_encrypted_records IS
 'Private ORG archive. RLS enabled and forced. No anon/authenticated policies or table privileges. service_role is server-only and bypasses RLS; API must validate an organization session before every operation. Store ciphertext only; never plaintext or keys.';
