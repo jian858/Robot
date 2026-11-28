@@ -2,20 +2,17 @@ import { verifyOrgSession } from "./_session.js";
 const base = (process.env.SUPABASE_URL || "https://ioxighjshkphworqqnzt.supabase.co").replace(/\/$/,"");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 function validCiphertext(value) {
-  if (typeof value !== "string" || value.length > 2000000) return false;
+  if (typeof value !== "string" || value.length > 2000000 || /\s/.test(value)) return false;
   const parts = value.split(":");
   const b64 = /^[A-Za-z0-9_-]+$/;
+  const canonical = value => { if (!b64.test(value) || value.length % 4 === 1) return null; const decoded = Buffer.from(value,"base64url"); return decoded.toString("base64url") === value ? decoded : null; };
   try {
     if (parts[0] === "ORG1" && parts.length === 4 && parts.slice(1).every(x => b64.test(x))) {
-      return Buffer.from(parts[1],"base64url").length === 16 &&
-        Buffer.from(parts[2],"base64url").length === 12 &&
-        Buffer.from(parts[3],"base64url").length >= 16;
+      return canonical(parts[1])?.length === 16 && canonical(parts[2])?.length === 12 && canonical(parts[3])?.length >= 16;
     }
     if (parts[0] === "ORG2" && parts.length === 6 && parts[1] === "PBKDF2-SHA256" &&
         parts[2] === "1200000" && parts.slice(3).every(x => b64.test(x))) {
-      return Buffer.from(parts[3],"base64url").length === 16 &&
-        Buffer.from(parts[4],"base64url").length === 12 &&
-        Buffer.from(parts[5],"base64url").length >= 16;
+      return canonical(parts[3])?.length === 16 && canonical(parts[4])?.length === 12 && canonical(parts[5])?.length >= 16;
     }
   } catch {}
   return false;
