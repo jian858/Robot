@@ -1,42 +1,34 @@
-# Robot Office AI
+# ORG — Secure Organization Workspace
 
-Robot Office AI is an eight-specialist team workspace. Every task is assigned to all eight robots: Boss, Researcher, Coder, Editor, Analyst, Writer, Reviewer, and Tester. Each specialist receives the earlier team discussion before writing its contribution. A provider failure for one robot does not stop the rest.
+The Robot Office interface and robot task workflow have been replaced with an organization encryption workspace.
+
+## Features
+- ORG1 encrypted payload format: ORG1:SALT:IV:CIPHERTEXT
+- AES-256-GCM authenticated encryption in the browser
+- PBKDF2-HMAC-SHA-256 with 600,000 iterations
+- Fresh 16-byte salt and 12-byte IV for every encryption
+- Supabase Auth email/password sign-in and registration
+- Supabase PostgreSQL stores ciphertext only
+- Row Level Security restricts records to their owner
+- Decryption takes place locally in the browser; passphrases are never sent to Supabase
 
 ## Deploy
+Configured for Vercel:
+- Static application: index.html
+- Public configuration endpoint: GET /api/config
 
-This repository is configured for Vercel:
-- Static app: `index.html`
-- Task API: `POST /api/task`
-- Status API: `GET /api/status`
-- Vercel Functions use the native `api/` directory routing.
+Set these Vercel environment variables:
+- SUPABASE_URL=https://ioxighjshkphworqqnzt.supabase.co
+- SUPABASE_ANON_KEY=your Supabase publishable key or legacy anon key
 
-Vercel project: https://vercel.com/murmur6/robot-office-ai  
-App: https://robot-office-ai-murmur6.vercel.app
-
-## Supported AI providers
-
-Robot Office uses ChatGPT / OpenAI only: `OPENAI_API_KEY` (default model: `gpt-4.1-mini`).
-
-Add the keys in **Vercel → robot-office-ai → Settings → Environment Variables**, then redeploy. The background worker runs in Supabase, so add `OPENAI_API_KEY` separately in **Supabase → Edge Functions → Secrets**. Vercel environment variables are not shared with Supabase. Never commit real keys to GitHub or paste them into chat.
-
-Optional model override: `OPENAI_MODEL`.
-
-Every robot uses OpenAI. No Grok, Gemini, Mistral, Groq, or Cloudflare AI provider is enabled.
-
-## Check the app
-
-- Open `/api/status`. It returns the configured provider names and all eight robot IDs without exposing secrets.
-- `POST /api/task` accepts JSON: `{"task":"Your task","agent":"researcher","context":[]}`.
-- The task endpoint returns a JSON error if no provider is configured or all configured providers fail.
+Do not put a service_role or secret key in the browser or in GitHub.
 
 ## Local development
-
-Use Node.js 20 or newer:
-
+Use Node.js 20+:
 ```sh
 npm start
 ```
+Open http://localhost:3000. Set SUPABASE_ANON_KEY in the local environment first.
 
-Then open http://localhost:3000.
-
-Set the same environment variables in your local shell before starting the server. Do not commit a real `.env` file.
+## Password safety
+This is reversible encryption for messages and secrets that must later be decrypted. Do not use it to store login passwords. Store account passwords using Supabase Auth's password hashing.
