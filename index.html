@@ -1,780 +1,111 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Robot office</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>ORG — Secure Workspace</title>
 <style>
-:root{
-  --page:#e8edf6;--card:#f8faff;--ink:#172036;--mute:#566079;
-  --wall:#f3f6fc;--frame:#8a95ad;--slab:#aeb9d0;--shaft:#dde4f1;--roof:#7b86a6;--office:#f8edc8;
-  --desk:#e2b47a;--desk-edge:#bf8d52;--chair:#4a5470;
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --page:#0f1428;--card:#1a2040;--ink:#eef2ff;--mute:#a3acc9;
-  --wall:#1b2140;--frame:#5b678c;--slab:#3a4570;--shaft:#131833;--roof:#46517a;--office:#322d1c;
-  --desk:#c9965c;--desk-edge:#a87a45;--chair:#7d88aa;
-  color-scheme:dark;
-}}
-:root[data-theme="dark"]{
-  --page:#0f1428;--card:#1a2040;--ink:#eef2ff;--mute:#a3acc9;
-  --wall:#1b2140;--frame:#5b678c;--slab:#3a4570;--shaft:#131833;--roof:#46517a;--office:#322d1c;
-  --desk:#c9965c;--desk-edge:#a87a45;--chair:#7d88aa;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-html,body{margin:0}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{background:var(--page);color:var(--ink);font-family:Fredoka,ui-rounded,"Avenir Next Rounded",system-ui,sans-serif;padding:20px 16px 28px}
-main{max-width:780px;margin:0 auto}
-h1{font-size:28px;line-height:1.1;margin:0 0 12px;font-weight:600}
-
-.bar{display:flex;gap:8px;margin:0 0 8px}
-#task{flex:1;min-width:0;min-height:48px;resize:vertical;padding:11px 14px;border:2px solid var(--frame);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:16px;line-height:1.4}
-#go{padding:0 16px;border:0;border-radius:12px;background:var(--ink);color:var(--page);font:inherit;font-size:16px;font-weight:600;cursor:pointer}
-#task:focus-visible,#go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-#now{margin:0 0 12px;color:var(--mute);font-size:14px;min-height:1.4em}
-
-#house{position:relative;width:min(100%,620px);margin:12px auto 0;aspect-ratio:360/660;user-select:none;filter:drop-shadow(0 12px 24px rgba(20,30,60,.10))}
-#house>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-
-.board{position:absolute;left:5.56%;top:38.18%;width:38.89%;height:11.82%;padding:4px 6px;overflow:hidden;border:1px solid var(--frame);border-radius:6px;background:var(--card);font-size:clamp(9px,2.9vw,11px);line-height:1.3}
-.board b{display:block;font-weight:600}
-.board small{display:block;color:var(--mute)}
-.board div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.board div:first-of-type{animation:pop .5s ease-out}
-.board i{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%}
-@keyframes pop{from{opacity:0;transform:scale(.92)}}
-
-.r{position:absolute;width:6.67%;transform:translate(-50%,-100%)}
-.r svg{display:block;width:100%;height:auto;overflow:visible}
-.talk{z-index:5}\n.you-robot{z-index:4;filter:drop-shadow(0 2px 5px rgba(0,0,0,.18))}\n.you-robot::before{content:"YOU";position:absolute;left:50%;bottom:calc(100% + 2px);transform:translateX(-50%);font-size:8px;font-weight:600;letter-spacing:.04em;color:var(--ink);background:var(--card);border:1px solid var(--frame);border-radius:5px;padding:1px 4px;white-space:nowrap}\n.meet{filter:drop-shadow(0 0 5px rgba(53,182,168,.55))}
-.bub{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);width:max-content;max-width:clamp(96px,30vw,118px);padding:4px 7px;border:1px solid var(--frame);border-radius:9px;background:var(--card);color:var(--ink);font-size:clamp(9.5px,2.9vw,11px);line-height:1.25;text-align:center;opacity:0;pointer-events:none;transition:opacity .15s}
-.bub::after{content:"";position:absolute;top:100%;left:calc(50% - var(--dx,0px));width:6px;height:6px;background:var(--card);border:solid var(--frame);border-width:0 1px 1px 0;transform:translate(-50%,-3px) rotate(45deg)}
-.talk .bub{opacity:1}
-
-.walk svg{animation:hop .28s ease-in-out infinite alternate}
-.work svg{animation:hop .6s ease-in-out infinite alternate}
-.walk .lg{transform-box:fill-box;transform-origin:50% 0;animation:swing .28s ease-in-out infinite alternate}
-.walk .lg.b{animation-direction:alternate-reverse}
-.sit .legs{visibility:hidden}
-.ride::after{content:"";position:absolute;left:-15%;right:-15%;bottom:-3px;height:4px;border-radius:2px;background:var(--frame)}
-@keyframes hop{to{transform:translateY(-1.5px)}}
-@keyframes swing{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
-.work svg{animation:typeBob .32s ease-in-out infinite alternate}
-.work .arms{transform-box:fill-box;transform-origin:50% 15%;animation:typeArms .16s ease-in-out infinite alternate}
-.work::after{content:"typing";position:absolute;left:50%;top:100%;transform:translateX(-50%);padding:2px 5px;border-radius:6px;background:var(--card);border:1px solid var(--frame);color:var(--mute);font-size:8px;line-height:1.2;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-@keyframes typeBob{from{transform:translateY(0)}to{transform:translateY(-1px)}}
-@keyframes typeArms{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}
-@media (prefers-reduced-motion:reduce){.r svg,.r .lg,.board div{animation:none!important}}
-
-#log{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:6px;font-size:14px;line-height:1.35}
-#log li{display:flex;gap:8px;align-items:flex-start}
-#log li:nth-child(n+2){color:var(--mute)}
-#log i{width:9px;height:9px;margin-top:5px;border-radius:50%;flex:none}
-#log b{font-weight:600}
-
-.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
-.subtitle{margin:-5px 0 0;color:var(--mute);font-size:14px}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px}
-#now{flex:1;margin:0;color:var(--mute);font-size:14px;min-height:1.4em}
-.secondary{padding:8px 11px;border:1px solid var(--frame);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
-.secondary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.activity h2{font-size:16px;margin:18px 0 8px}
-.note{margin:18px 0 0;color:var(--mute);font-size:12px;line-height:1.45}
-#go:disabled{opacity:.55;cursor:not-allowed}
-@media(max-width:380px){.top{align-items:center}.toolbar{align-items:flex-start}.secondary{font-size:12px;padding:7px 8px}}
-
-
-.memory-core{margin:22px auto 8px;padding:14px;border:1px solid var(--frame);border-radius:18px;background:var(--card);text-align:center;box-shadow:0 8px 24px rgba(20,30,60,.08)}
-.memory-core h2{font-size:17px;margin:0 0 4px}
-.memory-core .hint{font-size:12px;color:var(--mute);margin:0}
-.orb-stage{height:174px;display:grid;place-items:center;position:relative;overflow:hidden}
-.memory-orb{position:relative;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 32% 25%,#f3ffff 0 4%,#7df9ff 8%,#3a8ef2 28%,#5a3bb9 58%,#141a46 82%);box-shadow:0 0 22px rgba(76,184,255,.6),inset -12px -15px 24px rgba(4,8,35,.55),inset 8px 7px 16px rgba(255,255,255,.65);animation:orbPulse 4s ease-in-out infinite}
-.memory-orb:before{content:"";position:absolute;inset:-13px;border:1px solid rgba(92,185,255,.65);border-radius:50%;transform:rotateX(68deg) rotateZ(-18deg);box-shadow:0 0 16px rgba(82,174,255,.35)}
-.memory-orb:after{content:"";position:absolute;inset:14px 20px;border-radius:50%;border:1px solid rgba(255,255,255,.5);transform:rotate(35deg)}
-.memory-platform{position:absolute;bottom:18px;width:190px;height:28px;border-radius:50%;background:linear-gradient(180deg,#8bd9ff,#344c9e 55%,#17234d);border:2px solid #9bdcff;box-shadow:0 8px 14px rgba(28,72,160,.28),0 0 18px rgba(83,172,255,.4)}
-.memory-platform:before{content:"";position:absolute;left:12%;right:12%;top:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.7)}
-@keyframes orbPulse{50%{filter:brightness(1.18);transform:translateY(-4px)}}
-.memory-stats{font-size:13px;color:var(--mute);margin:0 0 10px}
-#memoryFacts{display:grid;gap:7px;text-align:left;max-height:220px;overflow:auto}
-.memory-fact{padding:9px 10px;border:1px solid var(--frame);border-radius:10px;background:var(--page);font-size:12px;line-height:1.4}
-.memory-fact b{display:block;font-size:13px;margin-bottom:3px}
-@media(prefers-reduced-motion:reduce){.memory-orb{animation:none}}
-
-#memoryOrbOffice{position:absolute;z-index:3;left:39%;top:34.5%;width:22%;height:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;color:var(--ink);font-size:clamp(6px,1.7vw,9px);font-weight:600;letter-spacing:.8px;text-shadow:0 1px 4px var(--card)}
-#memoryOrbOffice .memory-orb{width:clamp(34px,10vw,64px);height:clamp(34px,10vw,64px);flex:none}
-#memoryOrbOffice .memory-orb:before{inset:-7px}
-#memoryOrbOffice .memory-orb:after{inset:8px 11px}
-#memoryOrbOffice .memory-platform{position:relative;bottom:auto;width:clamp(62px,17vw,110px);height:clamp(9px,2.5vw,15px);margin-top:-2px;flex:none}
-#memoryOrbOffice .memory-platform:before{height:2px;top:2px}
-#memoryOrbOffice span{margin-top:3px}
-/* Office refresh */
-:root{--accent:#6c7cff;--accent2:#38c8d5;--surface:var(--card)}
-body{min-height:100vh;background:radial-gradient(ellipse at 12% 0%,rgba(108,124,255,.14),transparent 34%),radial-gradient(ellipse at 92% 12%,rgba(56,200,213,.12),transparent 30%),var(--page)}
-main{max-width:900px}
-.top{align-items:center;padding:18px 20px;margin:0 0 16px;border:1px solid color-mix(in srgb,var(--frame) 45%,transparent);border-radius:20px;background:linear-gradient(135deg,var(--card),color-mix(in srgb,var(--card) 82%,var(--accent)));box-shadow:0 12px 34px rgba(30,45,90,.09)}
-h1{font-size:clamp(25px,5vw,34px);letter-spacing:-.6px}
-.subtitle{max-width:470px;line-height:1.45}
-.bar{padding:12px;border:1px solid color-mix(in srgb,var(--frame) 50%,transparent);border-radius:18px;background:var(--card);box-shadow:0 8px 24px rgba(30,45,90,.06)}
-#task{min-height:74px;border:1px solid var(--frame);border-radius:13px;background:var(--page)}
-#go{min-width:112px;border-radius:13px;background:linear-gradient(135deg,#596cf0,#347fc9);color:white;box-shadow:0 5px 14px rgba(74,104,220,.25);transition:transform .15s,filter .15s}
-#go:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
-.toolbar{padding:2px 4px 8px}
-#now{font-weight:500}
-#house{width:min(100%,720px);margin:20px auto 28px;padding:10px;border:1px solid color-mix(in srgb,var(--frame) 40%,transparent);border-radius:24px;background:linear-gradient(145deg,color-mix(in srgb,var(--card) 90%,var(--accent)),var(--card));box-shadow:0 18px 42px rgba(28,42,82,.12);overflow:hidden}
-#house>svg{border-radius:16px}
-.activity,.memory-core{margin:18px 0;padding:18px;border:1px solid color-mix(in srgb,var(--frame) 48%,transparent);border-radius:18px;background:var(--card);box-shadow:0 8px 24px rgba(30,45,90,.055)}
-.activity h2,.memory-core h2{display:flex;align-items:center;gap:8px;font-size:17px;margin:0 0 12px}
-.activity h2:before{content:"";width:5px;height:18px;border-radius:9px;background:linear-gradient(#6c7cff,#38c8d5)}
-#log{gap:9px}
-#log li{padding:9px 11px;border-radius:11px;background:var(--page);font-size:13px}
-#savedWorkList{display:grid;gap:9px}
-#savedWorkList>details{padding:11px 13px;border:1px solid color-mix(in srgb,var(--frame) 50%,transparent);border-radius:12px;background:var(--page)}
-#savedWorkList summary{cursor:pointer;font-weight:600;font-size:13px;line-height:1.4}
-#savedWorkList details p{font-size:12px;color:var(--mute);line-height:1.45;overflow-wrap:anywhere}
-#savedWorkList pre{font-size:12px!important;max-height:260px;overflow:auto}
-.memory-core{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,rgba(68,128,255,.12),transparent 58%),var(--card)}
-.memory-core h2{justify-content:center}
-.memory-core .hint{max-width:480px;margin:0 auto;line-height:1.5}
-.orb-stage{height:188px}
-.memory-orb{width:112px;height:112px;box-shadow:0 0 28px rgba(76,184,255,.7),0 0 75px rgba(91,83,225,.25),inset -12px -15px 24px rgba(4,8,35,.55),inset 8px 7px 16px rgba(255,255,255,.65)}
-.memory-platform{width:210px;bottom:16px}
-.memory-stats{font-weight:600}
-.memory-fact{border-radius:11px}
-.secondary{border-radius:11px;transition:background .15s}
-.secondary:hover{background:color-mix(in srgb,var(--card) 75%,var(--accent))}
-.note{line-height:1.55}
-@media(max-width:520px){body{padding:12px 11px 22px}.top{padding:14px;border-radius:16px}.bar{padding:9px;gap:7px}#go{min-width:82px;padding:0 12px;font-size:14px}#house{padding:5px;border-radius:18px}.activity,.memory-core{padding:14px;border-radius:15px}}
-
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121e30;--panel2:#18263b;--line:#293b55;--text:#edf4ff;--muted:#9eb0c9;--accent:#55a6ff;--good:#55d6a0;--bad:#ff8585}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#18365b 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:1040px;margin:auto;padding:24px 16px 56px}.header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border:1px solid var(--line);border-radius:18px;background:#101b2bdc}
+.brand{display:flex;align-items:center;gap:13px}.mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#65c9ff,#4455cc);display:grid;place-items:center;font-weight:900;font-size:20px;color:#071526}.brand h1{font-size:22px;margin:0;letter-spacing:.08em}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px;letter-spacing:.12em}
+.pill{font-size:12px;color:var(--good);border:1px solid #28634f;padding:5px 10px;border-radius:99px}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr);gap:16px;margin-top:16px}.panel{background:linear-gradient(155deg,var(--panel),#101a2a);border:1px solid var(--line);border-radius:17px;padding:20px;min-width:0}.panel h2{font-size:17px;margin:0 0 5px}.desc{color:var(--muted);font-size:13px;margin:0 0 18px}
+label{display:block;font-size:13px;color:#c5d4e8;margin:14px 0 7px}input,textarea{width:100%;background:#0b1524;border:1px solid #354a67;border-radius:10px;padding:12px;color:var(--text);font:inherit;outline:none}input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #55a6ff22}textarea{min-height:120px;resize:vertical}
+button{border:0;border-radius:10px;background:linear-gradient(135deg,#398fe9,#5368dc);color:white;padding:11px 15px;font:600 14px system-ui;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.ghost{background:#1c2d44;border:1px solid var(--line);color:#dbe9fb}.danger{background:#3b2029;border:1px solid #70404b;color:#ffc4c4}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}.wide{width:100%;margin-top:12px}
+.notice{margin-top:12px;color:var(--muted);font-size:13px;min-height:20px;overflow-wrap:anywhere}.notice.good{color:var(--good)}.notice.bad{color:var(--bad)}
+.auth{max-width:520px;margin:20px auto}.hidden{display:none!important}.records{display:grid;gap:9px;margin-top:12px}.record{border:1px solid var(--line);border-radius:11px;padding:12px;background:#0d1929;display:flex;align-items:center;justify-content:space-between;gap:12px}.record strong{display:block;overflow-wrap:anywhere}.record small{color:var(--muted)}.record button{padding:7px 10px;font-size:12px}
+.spec{display:grid;grid-template-columns:1fr 1fr;gap:9px}.spec div{background:#0d1929;border:1px solid var(--line);border-radius:10px;padding:11px}.spec b{display:block;font-size:13px}.spec span{font-size:12px;color:var(--muted)}
+.result{white-space:pre-wrap;overflow-wrap:anywhere;max-height:280px;overflow:auto;background:#091321;border:1px solid var(--line);border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,monospace}
+footer{text-align:center;color:#7387a2;font-size:12px;margin-top:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.header{align-items:flex-start}.pill{white-space:nowrap}.wrap{padding:13px 11px 40px}.panel{padding:16px}}
 </style>
 </head>
 <body>
-<main>
-  <header class="top">
-    <div>
-      <h1>Robot Office AI</h1>
-      <p class="subtitle">A lively team office — every specialist talks, collaborates and works together.</p>
-    </div>
-    <button id="theme" class="secondary" type="button" aria-label="Switch color theme">Dark mode</button>
-  </header>
-  <div class="bar">
-    <textarea id="task" rows="3" maxlength="12000" placeholder="Describe the exact work you want. Include dates, format, details, and rules." aria-label="Task instructions"></textarea>
-    <button id="go" type="button">Start task</button>
-  </div>
-  <div class="toolbar">
-    <p id="now" role="status" aria-live="polite"></p>
-    <button id="clear" class="secondary" type="button">Clear board view</button>
-  </div>
-  <div id="house"><div id="board" class="board"></div><div id="memoryOrbOffice" aria-label="Central office memory orb"><div class="memory-orb" aria-hidden="true"></div><div class="memory-platform" aria-hidden="true"></div><span>MEMORY CORE</span></div></div>
-  <section class="memory-core" aria-label="Central memory records">
-    <h2>Office memory records</h2>
-    <p class="hint">The orb is inside the office. These are the shared memories stored inside it.</p>
-    <p id="memoryStats" class="memory-stats" aria-live="polite">Connecting to permanent memory…</p>
-    <div id="memoryFacts"><p class="note">Saved memories will appear here.</p></div>
-  </section>
-  <section id="answer" class="activity" aria-label="Robot team report" hidden>
-    <h2>Robot team report</h2>
-    <pre id="answerText" style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:14px;line-height:1.5;background:var(--card);border:1px solid var(--frame);border-radius:10px;padding:12px"></pre>
-  </section>
-  <section id="savedWork" class="activity" aria-label="Saved work history">
-    <h2>Saved work history</h2>
-    <input id="historySearch" type="search" placeholder="Search saved tasks, answers and memory…" aria-label="Search saved work and memory" style="width:100%;min-height:44px;margin:0 0 12px;padding:10px 13px;border:1px solid var(--frame);border-radius:11px;background:var(--page);color:var(--ink);font:inherit">
-    <p id="searchStatus" class="note" aria-live="polite" style="margin:0 0 8px">Search across saved tasks, robot answers and memory.</p>
-    <div id="savedWorkList"><p class="note">Loading saved work…</p></div>
-  </section>
-  <section class="activity" aria-label="Recent robot activity">
-    <h2>Recent activity</h2>
-    <ul id="log"></ul>
-  </section>
-  <p class="note">No-AI mode: robots use programmed rules, save work in Supabase, and open free web search engines directly in your browser.</p>
-</main>
+<div class="wrap">
+<header class="header">
+ <div class="brand"><div class="mark">O</div><div><h1>ORG</h1><p>ORGANIZATION • SECURE WORKSPACE</p></div></div>
+ <span class="pill">ORG1 · AES-256-GCM</span>
+</header>
 
+<section id="authPanel" class="panel auth">
+ <h2>Organization access</h2><p class="desc">Sign in or create an account to access your private encrypted records.</p>
+ <label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+ <label for="authPassword">Account password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Your account password">
+ <div class="row" style="margin-top:14px"><button id="signIn">Sign in</button><button id="signUp" class="ghost">Create account</button></div>
+ <p id="authStatus" class="notice" role="status"></p>
+</section>
+
+<div id="workspace" class="hidden">
+ <div class="row" style="justify-content:space-between;align-items:center;margin:14px 2px">
+  <span id="signedInAs" class="desc" style="margin:0">Signed in</span><button id="signOut" class="ghost">Sign out</button>
+ </div>
+ <div class="grid">
+  <section class="panel">
+   <h2>Encrypt a secret</h2><p class="desc">Encryption happens in this browser. Your passphrase is never sent to Supabase.</p>
+   <label for="recordTitle">Record title</label><input id="recordTitle" maxlength="120" placeholder="e.g. Organization access phrase">
+   <label for="plainText">Text to encrypt</label><textarea id="plainText" maxlength="1000000" placeholder="Enter the message or secret you want to protect"></textarea>
+   <label for="encPass">Encryption passphrase</label><input id="encPass" type="password" autocomplete="new-password" placeholder="Use a long, unique passphrase">
+   <button id="encryptBtn" class="wide">Encrypt and save to Supabase</button>
+   <p id="encStatus" class="notice" role="status"></p>
+   <label for="encryptedOutput">ORG1 encrypted code</label><textarea id="encryptedOutput" readonly placeholder="ORG1:SALT:IV:CIPHERTEXT"></textarea>
+   <button id="copyBtn" class="ghost wide">Copy encrypted code</button>
+  </section>
+  <aside class="panel">
+   <h2>ORG1 standard</h2><p class="desc">Encryption details used by this organization workspace.</p>
+   <div class="spec">
+    <div><b>AES-256-GCM</b><span>Authenticated encryption</span></div>
+    <div><b>PBKDF2 / SHA-256</b><span>600,000 iterations</span></div>
+    <div><b>16-byte salt</b><span>Random per encryption</span></div>
+    <div><b>12-byte IV</b><span>Random per encryption</span></div>
+   </div>
+   <label>Output structure</label><div class="result">ORG1:SALT:IV:CIPHERTEXT</div>
+   <p class="desc" style="margin:14px 0 0">The salt, IV, ciphertext and GCM authentication tag are stored together. The encryption passphrase is not stored.</p>
+  </aside>
+ </div>
+ <div class="grid">
+  <section class="panel">
+   <h2>Decrypt ORG1 code</h2><p class="desc">Paste a code and enter the same passphrase used to encrypt it.</p>
+   <label for="decryptCode">Encrypted code</label><textarea id="decryptCode" placeholder="ORG1:SALT:IV:CIPHERTEXT"></textarea>
+   <label for="decPass">Decryption passphrase</label><input id="decPass" type="password" autocomplete="off" placeholder="Original encryption passphrase">
+   <button id="decryptBtn" class="wide">Decrypt</button><p id="decStatus" class="notice" role="status"></p>
+   <label for="decryptedOutput">Decrypted text</label><textarea id="decryptedOutput" readonly placeholder="Decrypted content appears here"></textarea>
+  </section>
+  <section class="panel">
+   <h2>Saved encrypted records</h2><p class="desc">Only your signed-in account can view or delete its records. Supabase stores ciphertext only.</p>
+   <button id="refreshRecords" class="ghost">Refresh records</button><div id="records" class="records"><p class="desc">Loading records…</p></div>
+   <p id="recordsStatus" class="notice" role="status"></p>
+  </section>
+ </div>
+</div>
+<footer>ORG Organization System · ORG1 encryption · Protected by Supabase Row Level Security</footer>
+</div>
 <script>
-
-/* ---------- free search engines: no AI or API key ---------- */
-const searchEngines = [
-  ["Google",q=>"https://www.google.com/search?q="+encodeURIComponent(q)],
-  ["Bing",q=>"https://www.bing.com/search?q="+encodeURIComponent(q)],
-  ["DuckDuckGo",q=>"https://duckduckgo.com/?q="+encodeURIComponent(q)],
-  ["Brave",q=>"https://search.brave.com/search?q="+encodeURIComponent(q)],
-  ["Yahoo",q=>"https://search.yahoo.com/search?p="+encodeURIComponent(q)],
-  ["Ecosia",q=>"https://www.ecosia.org/search?q="+encodeURIComponent(q)],
-  ["Mojeek",q=>"https://www.mojeek.com/search?q="+encodeURIComponent(q)],
-  ["Startpage",q=>"https://www.startpage.com/sp/search?query="+encodeURIComponent(q)],
-  ["Qwant",q=>"https://www.qwant.com/?q="+encodeURIComponent(q)]
-];
-/* ---------- data ---------- */
-const BOTS = [
-  {n:"Boss", j:"Team manager", c:"#f59e5b", p:"★", agent:"boss"},
-  {n:"Researcher", j:"Research specialist", c:"#35b6a8", p:"⌕", agent:"researcher"},
-  {n:"Coder", j:"Software developer", c:"#8e6cf0", p:"</>", agent:"coder"},
-  {n:"Editor", j:"Editor", c:"#5b6ee1", p:"✎", agent:"editor"},
-  {n:"Analyst", j:"Data analyst", c:"#4fb36b", p:"∑", agent:"analyst"},
-  {n:"Writer", j:"Content writer", c:"#ef6aa7", p:"W", agent:"writer"},
-  {n:"Reviewer", j:"Quality reviewer", c:"#f2b134", p:"✓", agent:"reviewer"},
-  {n:"Tester", j:"QA tester", c:"#29b6f6", p:"T", agent:"tester"}
-];
-
-/* Words in your task decide which robot leads it. */
-const KEYS = {
-  Boss: /manage|organize|coordinate|project|team|plan|task|all/i,
-  Researcher: /research|find|search|look up|compare|news|facts|source/i,
-  Coder: /code|app\\b|bug|website|program|script|software|fix|build|api/i,
-  Editor: /edit|proofread|grammar|rewrite|polish|document|revise/i,
-  Analyst: /analy[sz]|data|calculate|statistics|report|evaluate|budget/i,
-  Writer: /write|email|letter|post|story|essay|blog|message|draft|poem/i,
-  Reviewer: /review|check|audit|security|quality|inspect|feedback/i,
-  Tester: /test|testing|qa|validate|verify|edge case|debug/i
-};
-
-/* What the lead asks a helper, and how the helper answers. */
-const TALK = {
-  Boss: ["Who should handle this task?", "I will coordinate the specialist team."],
-  Researcher: ["What facts do we need?", "I will investigate the information."],
-  Coder: ["Does this need code?", "I will work on the implementation."],
-  Editor: ["Could this be clearer?", "I will polish the writing."],
-  Analyst: ["What does the data tell us?", "I will analyze the details."],
-  Writer: ["Do we need a draft?", "I will prepare the content."],
-  Reviewer: ["What needs checking?", "I will review quality and risks."],
-  Tester: ["How can we verify it?", "I will prepare test cases."]
-};
-
-/* ---------- geometry: 360 x 660 units, 6 floors, my office is the big room in the middle ---------- */
-const W = 360, H = 660, HALL = 180, OFFICE = 2;
-const FYS = [128, 224, 368, 464, 560, 656];          // y of each floor line
-const FH  = [92, 92, 140, 92, 92, 92];               // room height of each floor
-const SLOT = [0, 0, 1, 1, 3, 3, 4, 4];         // floor of each robot's office
-const seatX = i => (i & 1 ? 280 : 80);
-const seat = r => ({f: SLOT[r.i], x: seatX(r.i), sit: 1});
-const visit = r => ({f: SLOT[r.i], x: r.i & 1 ? 250 : 110});
-const meet = r => ({f: SLOT[r.i], x: r.i & 1 ? 226 : 134});
-const DESK = {f: OFFICE, x: 205};                    // where a robot stands to get a task from me
-const BOARD = {f: OFFICE, x: 95};                    // where a robot pins a finished task
-const wander = () => {
-  const f = rand(0, 6) | 0;
-  return {f, x: (f === OFFICE ? [40, 75, 115, 150, 205] : [HALL, 112, 248, 100, 262])[rand(0, 5) | 0]};
-};
-const nearest = y => FYS.reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a));
-
-const rand = (a, b) => a + Math.random() * (b - a);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const esc = s => s.replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const short = s => (s.length > 28 ? s.slice(0, 27) + "…" : s);
-const shade = (hex, k) =>
-  "#" + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, "0")).join("");
-
-/* ---------- drawing ---------- */
-function building() {
-  const oy = FYS[OFFICE], ot = oy - FH[OFFICE];
-  let s = `<path d="M0 36L180 4L360 36z" fill="var(--roof)"/>
-<rect x="8" y="36" width="344" height="${H - 36}" fill="var(--wall)" stroke="var(--frame)" stroke-width="3"/>
-<rect x="148" y="36" width="64" height="${H - 36}" fill="var(--shaft)"/>
-<rect x="8" y="${ot}" width="344" height="${FH[OFFICE]}" fill="var(--office)"/>
-<text x="20" y="${ot + 17}" font-size="12" font-weight="600" fill="var(--ink)">My office</text>
-<rect x="264" y="${oy - 64}" width="30" height="40" rx="8" fill="var(--chair)"/>
-<rect x="266" y="${oy - 42}" width="26" height="18" rx="7" fill="#7a8bb8"/>
-<circle cx="279" cy="${oy - 52}" r="9" fill="#e9b98f"/>
-<path d="M270 ${oy - 54}a9 9 0 0 1 18 0z" fill="#3b2f2a"/>
-<circle cx="275.5" cy="${oy - 51}" r="1" fill="#222"/><circle cx="282.5" cy="${oy - 51}" r="1" fill="#222"/>
-<rect x="222" y="${oy - 26}" width="114" height="6" rx="2" fill="var(--desk)"/>
-<rect x="226" y="${oy - 20}" width="106" height="20" fill="var(--desk-edge)"/>
-<text x="279" y="${oy - 6}" font-size="9" font-weight="600" text-anchor="middle" fill="#fff">You</text>
-<text x="240" y="${oy - 27}" font-size="11" text-anchor="middle">☕</text>
-<text x="343" y="${oy - 1}" font-size="18" text-anchor="middle">🪴</text>`;
-
-  // Shared spaces on the lower floor: boardroom, TV lounge and workshop.
-  const base = FYS[5] - FH[5];
-  s += `
-<rect x="10" y="${base}" width="340" height="${FH[5]}" fill="var(--office)" fill-opacity=".9"/>
-<rect x="18" y="${base+8}" width="148" height="76" rx="7" fill="#d9e7f5" stroke="var(--frame)" stroke-width="1.5"/>
-<text x="92" y="${base+20}" font-size="10" font-weight="600" text-anchor="middle" fill="var(--ink)">MEETING ROOM</text>
-<rect x="54" y="${base+27}" width="76" height="31" rx="3" fill="#26364f" stroke="#7186aa" stroke-width="2"/>
-<rect x="59" y="${base+31}" width="66" height="23" rx="2" fill="#5cc9e8"/>
-<path d="M92 ${base+58}v5m-14 0h28" stroke="var(--frame)" stroke-width="2"/>
-<rect x="42" y="${base+68}" width="100" height="7" rx="3" fill="var(--desk)"/>
-<circle cx="52" cy="${base+64}" r="5" fill="var(--chair)"/><circle cx="132" cy="${base+64}" r="5" fill="var(--chair)"/>
-<rect x="190" y="${base+8}" width="158" height="76" rx="7" fill="#dcefe9" stroke="var(--frame)" stroke-width="1.5"/>
-<text x="269" y="${base+20}" font-size="10" font-weight="600" text-anchor="middle" fill="var(--ink)">TV LOUNGE</text>
-<rect x="230" y="${base+26}" width="78" height="34" rx="4" fill="#26364f" stroke="#7186aa" stroke-width="2"/>
-<rect x="235" y="${base+30}" width="68" height="25" rx="2" fill="#7a8cff"/>
-<path d="M269 ${base+60}v5m-13 0h26" stroke="var(--frame)" stroke-width="2"/>
-<rect x="213" y="${base+68}" width="112" height="9" rx="4" fill="#8d9dbb"/>
-<text x="92" y="${base+81}" font-size="7" text-anchor="middle" fill="var(--ink)">TEAM DISCUSSIONS</text>
-<text x="269" y="${base+81}" font-size="7" text-anchor="middle" fill="var(--ink)">BREAKS & PRESENTATIONS</text>
-<text x="180" y="594" font-size="8" text-anchor="middle" fill="var(--mute)">SHARED TEAM FLOOR</text>
-`;
-  BOTS.forEach((b, i) => {                           // one small office per robot
-    const f = SLOT[i], side = i & 1, fy = FYS[f], top = fy - FH[f];
-    const X = (x, w = 0) => (side ? W - x - w : x);
-    const rc = (x, y, w, h, fill, rx = 0) =>
-      `<rect x="${X(x, w)}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}"/>`;
-    s += `<rect x="${side ? 212 : 8}" y="${top}" width="140" height="${FH[f]}" fill="${b.c}" fill-opacity=".2"/>`
-      + rc(18, fy - 22, 52, 4, "var(--desk)", 1) + rc(21, fy - 18, 3, 18, "var(--desk-edge)") + rc(64, fy - 18, 3, 18, "var(--desk-edge)")
-      + rc(28, fy - 36, 16, 12, "var(--ink)", 2) + rc(30, fy - 34, 12, 8, b.c, 1) + rc(35, fy - 24, 2, 3, "var(--ink)")
-      + rc(90, fy - 32, 4, 19, "var(--chair)", 2) + rc(69, fy - 13, 22, 3, "var(--chair)", 1.5)
-      + rc(78, fy - 10, 4, 8, "var(--chair)") + rc(70, fy - 3, 20, 3, "var(--chair)", 1.5)
-      + `<text x="${X(56)}" y="${fy - 24}" font-size="12" text-anchor="middle">${b.p}</text>`
-      + `<text x="${X(80)}" y="${top + 14}" font-size="10.5" font-weight="600" text-anchor="middle" fill="var(--ink)">${b.n}</text>`
-      + `<text x="${X(80)}" y="${top + 25}" font-size="8.5" text-anchor="middle" fill="var(--mute)">${b.j}</text>`;
-  });
-
-  FYS.forEach((fy, f) => {                           // floor slabs and doorways
-    s += `<rect x="8" y="${fy}" width="344" height="4" fill="var(--slab)"/>`;
-    if (f !== OFFICE) {
-      const top = fy - FH[f];
-      s += `<rect x="147" y="${top}" width="2" height="${FH[f] - 34}" fill="var(--frame)"/><rect x="211" y="${top}" width="2" height="${FH[f] - 34}" fill="var(--frame)"/>`;
-    }
-  });
-  return s + `<rect x="174" y="36" width="12" height="${H - 36}" fill="var(--frame)" fill-opacity=".18"/>`;
-}
-
-const EYES = [
-  '<circle cx="9.5" cy="8.5" r="1.6"/><circle cx="14.5" cy="8.5" r="1.6"/>',
-  '<path d="M7.5 9.5q1.5-2.5 3 0M13.5 9.5q1.5-2.5 3 0" fill="none" stroke="#7df9ff" stroke-width="1.3" stroke-linecap="round"/>',
-  '<rect x="8" y="7.5" width="8" height="2" rx="1"/>'
-];
-const GEAR = [
-  d => `<path d="M12 2V-2" stroke="${d}" stroke-width="1.5"/><circle cx="12" cy="-3" r="2" fill="#ffd166"/>`,
-  d => `<path d="M8 2L6 -3M16 2L18 -3" stroke="${d}" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="-4" r="1.6" fill="#ffd166"/><circle cx="18" cy="-4" r="1.6" fill="#ffd166"/>`,
-  d => `<g fill="${d}"><rect x="0" y="6" width="3.5" height="6" rx="1.7"/><rect x="20.5" y="6" width="3.5" height="6" rx="1.7"/></g>`,
-  d => `<path d="M4 3Q12-5 20 3z" fill="${d}"/>`,
-  d => `<path d="M12 2Q9 0 12-2T12-6" fill="none" stroke="${d}" stroke-width="1.4" stroke-linecap="round"/>`
-];
-
-function sprite(c, i) {
-  const d = shade(c, 0.68);
-  return `<svg viewBox="0 -6 24 38" aria-hidden="true">
-<g class="legs" fill="${d}"><rect class="lg" x="7" y="26" width="4" height="6" rx="1.5"/><rect class="lg b" x="13" y="26" width="4" height="6" rx="1.5"/></g>
-<g class="arms"><rect x="2" y="16" width="3" height="8" rx="1.5" fill="${d}"/><rect x="19" y="16" width="3" height="8" rx="1.5" fill="${d}"/></g>
-<rect x="5" y="14" width="14" height="13" rx="4" fill="${c}"/><rect x="9" y="17" width="6" height="4" rx="1.5" fill="#fff" fill-opacity=".45"/>
-${GEAR[i % 5](d)}<rect x="3" y="2" width="18" height="13" rx="5" fill="${c}"/><rect x="5.5" y="4.5" width="13" height="8" rx="3.5" fill="#151a26"/>
-<g fill="#7df9ff">${EYES[i % 3]}</g></svg>`;
-}
-
-/* ---------- set up the house, the robots and me ---------- */
-const house = document.getElementById("house");
-const boardEl = document.getElementById("board");
-const logEl = document.getElementById("log");
-const nowEl = document.getElementById("now");
-const inp = document.getElementById("task");
-house.insertAdjacentHTML("afterbegin", `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${building()}</svg>`);
-
-const place = r => {
-  r.el.style.left = (r.x / W * 100) + "%";
-  r.el.style.top = (r.y / H * 100) + "%";
-};
-
-const R = BOTS.map((b, i) => {
-  const el = document.createElement("div");
-  el.className = "r sit";
-  el.innerHTML = sprite(b.c, i) + '<div class="bub"></div>';
-  house.append(el);
-  const r = {...b, i, el, bub: el.lastChild, x: seatX(i), y: FYS[SLOT[i]] - 7, path: [], res: null, busy: false, sit: 1};
-  place(r);
-  return r;
-});
-
-const youEl = document.createElement("div");
-youEl.className = "r you-robot sit";
-youEl.innerHTML = sprite("#8a95ad", 8) + '<div class="bub"></div>';
-house.append(youEl);
-const YOU = {n:"You",c:"#8a95ad",agent:"user",i:8,el:youEl,bub:youEl.lastChild,x:180,y:FYS[OFFICE]-48,path:[],res:null,sit:1,busy:false};
-place(YOU);
-
-/* ---------- finished tasks pinned in my office (kept in this browser) ---------- */
-let done = [];
-try {
-  const saved = JSON.parse(localStorage.getItem("robot-office-done"));
-  if (Array.isArray(saved)) done = saved
-    .filter(d => d && typeof d.text === "string" && typeof d.c === "string")
-    .slice(0, 20);
-} catch (e) {}
-
-function renderBoard() {
-  boardEl.innerHTML = "<b>Done tasks</b>" + (done.length
-    ? done.slice(0, 4).map(d => `<div><i style="background:${d.c}"></i>${esc(d.text)}</div>`).join("")
-    : "<small>Finished tasks appear here.</small>");
-}
-function pin(entry) {
-  done.unshift(entry);
-  done = done.slice(0, 20);
-  try { localStorage.setItem("robot-office-done", JSON.stringify(done)); } catch (e) {}
-  renderBoard();
-}
-
-/* ---------- movement: walk along the floor, ride the lift in the middle ---------- */
-function go(r, d) {
-  if (r.res) r.res(false);                           // cancel whatever it was doing
-  r.el.classList.remove("sit", "work");
-  const fy = FYS[d.f], path = [];
-  if (Math.abs(r.y - fy) > 8) {                      // different floor: via the lift
-    const y0 = r.x === HALL ? r.y : nearest(r.y);
-    path.push({x: HALL, y: y0}, {x: HALL, y: fy});
-  }
-  path.push({x: d.x, y: Number.isFinite(d.y) ? d.y : (d.sit ? fy - 7 : fy)});
-  r.path = path;
-  r.sit = d.sit;
-  return new Promise(res => (r.res = res));
-}
-
-function arrive(r) {
-  r.el.classList.remove("walk", "ride");
-  if (r.sit) r.el.classList.add("sit");
-  const done = r.res;
-  r.res = null;
-  if (done) done(true);
-}
-
-let last = performance.now();
-function tick(t) {
-  const dt = Math.min(0.05, (t - last) / 1000);
-  last = t;
-  for (const r of [...R, YOU]) {
-    if (r.path.length) {
-      const p = r.path[0], dx = p.x - r.x, dy = p.y - r.y, dist = Math.hypot(dx, dy);
-      const vert = Math.abs(dx) < 0.5 && Math.abs(dy) > 1, step = (vert ? 75 : 46) * dt;
-      if (dist <= step) { r.x = p.x; r.y = p.y; r.path.shift(); }
-      else { r.x += dx / dist * step; r.y += dy / dist * step; }
-      r.el.classList.add("walk");
-      r.el.classList.toggle("ride", vert);
-      if (!r.path.length) arrive(r);
-    }
-    place(r);
-  }
-  requestAnimationFrame(tick);
-}
-
-/* ---------- talking ---------- */
-function addLog(r, text) {
-  logEl.insertAdjacentHTML("afterbegin", `<li><i style="background:${r.c}"></i><span><b>${r.n}</b> ${esc(text)}</span></li>`);
-  while (logEl.children.length > 8) logEl.lastChild.remove();
-}
-
-async function say(r, text) {
-  const b = r.bub;
-  const brief = String(text || "").replace(/\\s+/g, " ").trim();
-  const shortText = brief.length > 92 ? brief.slice(0, 89).trimEnd() + "…" : brief;
-  b.textContent = shortText;
-  b.style.marginLeft = "0px";
-  b.style.setProperty("--dx", "0px");
-  const c = house.getBoundingClientRect(), q = b.getBoundingClientRect();
-  const dx = q.left < c.left + 4 ? c.left + 4 - q.left : q.right > c.right - 4 ? c.right - 4 - q.right : 0;
-  b.style.marginLeft = dx + "px";                    // keep the bubble inside the house
-  b.style.setProperty("--dx", dx + "px");
-  r.el.classList.add("talk");
-  addLog(r, text);
-  await sleep(1450);
-  r.el.classList.remove("talk");
-}
-
-function showResult(text, lead) {
-  const section = document.getElementById("answer");
-  const output = document.getElementById("answerText");
-  output.textContent = text;
-  section.hidden = false;
-}
-
-/* ---------- tasks ---------- */
-const queue = [], active = new Set();
-let taskId = 0;
-function requiredAgents(text) {
-  const t = text.toLowerCase();
-  const rules = [
-    ["coder", /\b(code|coding|program|programming|software|website|web app|app|api|database|bug|debug|fix|build|develop|deploy|script|html|css|javascript|python)\b/],
-    ["writer", /\b(write|writing|draft|email|letter|essay|article|blog|story|poem|caption|post|speech|script)\b/],
-    ["editor", /\b(edit|editing|proofread|grammar|rewrite|revise|polish|format|summari[sz]e|translate)\b/],
-    ["analyst", /\b(analy[sz]e|analysis|calculate|calculation|statistics|statistical|data|budget|forecast|compare|evaluate|financial|research report)\b/],
-    ["reviewer", /\b(review|audit|security|inspect|critique|check|assess|verify|validate|risk|compliance)\b/],
-    ["tester", /\b(test|testing|test cases|qa|quality assurance|validate|verification|debug|troubleshoot)\b/]
-  ];
-  return new Set(["researcher","boss",...rules.filter(([,p])=>p.test(t)).map(([slug])=>slug)]);
-}
-const showNow = () => {
-  nowEl.textContent = active.size || queue.length
-    ? `${active.size} running, ${queue.length} waiting`
-    : "No tasks yet. Type one above and the robots will get to work.";
-};
-
-async function run(t, lead, helpers) {
-  const selected = requiredAgents(t.text);
-  const team = R.filter(r => selected.has(r.agent));
-  lead = R.find(r => r.agent === "researcher");
-  helpers = team.filter(r => r !== lead);
-  const tag = short(t.text);
-  team.forEach(r => { r.busy = true; });
-  active.add(t);
-  showNow();
-  try {
-    const saved = await fetch("/api/tasks", {
-      method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({title: t.text.slice(0, 200), instruction: t.text})
-    });
-    const savedType = saved.headers.get("content-type") || "";
-    if (!savedType.includes("application/json")) throw new Error("The private database API did not return JSON.");
-    const savedData = await saved.json();
-    if (!saved.ok) throw new Error(savedData.error || "Could not save this task.");
-    t.dbId = savedData.task.id;
-    addLog(lead, "Task saved. Selected specialists: " + team.map(r=>r.n).join(", ") + ".");
-    R.filter(r => !selected.has(r.agent)).forEach(r => {
-      r.busy = false;
-      r.path = [];
-      r.el.classList.remove("work","talk","walk","ride");
-      r.el.classList.add("sit");
-    });
-    await go(lead, DESK);
-    await say(YOU, t.text);
-    await say(lead, "I have saved the full instruction. The background team is taking over.");
-    await go(lead, seat(lead));
-    team.forEach(r => r.el.classList.add("work"));
-    const seen = new Set();
-    const started = Date.now();
-    let completedTask = null;
-    while (Date.now() - started < 30 * 60 * 1000) {
-      const response = await fetch("/api/tasks", {cache:"no-store"});
-      const type = response.headers.get("content-type") || "";
-      if (!type.includes("application/json")) throw new Error("Could not read the task queue.");
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not refresh task status.");
-      updateMemoryCore(data.memories || []);
-      const current = (data.tasks || []).find(x => x.id === t.dbId);
-      if (!current) throw new Error("The saved task disappeared from task history.");
-      const messages = current.robot_task_messages || [];
-      for (const message of messages) {
-        if (seen.has(message.id)) continue;
-        seen.add(message.id);
-        const slug = message.robot_agents?.slug;
-        const robot = R.find(r => r.agent === slug) || lead;
-        addLog(robot, "Saved a new contribution to the task memory.");
-        await go(robot, visit(robot));
-        const spoken = String(message.content || "");
-        await say(robot, robot.n + ": " + spoken.slice(0, 92) + (spoken.length > 92 ? "…" : ""));
-        await go(robot, seat(robot));
-        robot.el.classList.add("work");
-      }
-      const expectedStages = 3 + (Array.isArray(current.input_data?.selected_agents) ? current.input_data.selected_agents.length : 6);
-      const progress = Math.min(expectedStages, Number(current.worker_next_agent || 0));
-      nowEl.textContent = current.status === "completed"
-        ? "Task completed and saved permanently."
-        : current.status === "failed"
-          ? "Task failed: " + (current.error_message || "See saved work history.")
-          : "Background team working — " + progress + "/" + expectedStages + " stages saved. You can close this page.";
-      if (current.status === "completed") { completedTask = current; break; }
-      if (current.status === "failed") throw new Error(current.error_message || "The background worker could not complete the task.");
-      await sleep(10000);
-    }
-    if (!completedTask) {
-      addLog(lead, "Still processing in the background. Reopen the office to check saved work.");
-      nowEl.textContent = "Still running in the background. Your task remains saved.";
-      return;
-    }
-    const answer = completedTask.result || "The team completed the task but returned no final text.";
-    showResult(answer, lead);
-    await go(lead, BOARD);
-    pin({text: t.text, c: lead.c, id: t.id, at: Date.now()});
-    await say(lead, "Done. The final answer and team work are saved in the Memory Core.");
-    await say(YOU, "The completed work is stored permanently.");
-  } catch (err) {
-    console.error("Background task monitor:", err);
-    addLog(lead, "Task monitor: " + err.message);
-    nowEl.textContent = "Task is saved. " + err.message;
-  } finally {
-    team.forEach(r => {
-      r.busy = false;
-      r.el.classList.remove("work", "talk", "walk", "ride");
-      r.path = [];
-      r.bub.textContent = "";
-      r.sit = 1;
-      r.el.classList.add("sit");
-    });
-    active.delete(t);
-    showNow();
-    pump();
-  }
-}
-
-/* Every available specialist joins each task; the best match is the lead. */
-function pump() {
-  while (queue.length) {
-    const nextIndex = queue.findIndex(t => [...requiredAgents(t.text)].every(slug => {
-      const robot = R.find(r => r.agent === slug);
-      return robot && !robot.busy;
-    }));
-    if (nextIndex < 0) break;
-    const [t] = queue.splice(nextIndex, 1);
-    const lead = R.find(r => r.agent === "researcher");
-    const helpers = [...requiredAgents(t.text)].filter(slug => slug !== "researcher").map(slug => R.find(r => r.agent === slug));
-    run(t, lead, helpers);
-  }
-  showNow();
-}
-
-async function gatherAllRobots() {
-  addLog(YOU, "Calling every worker to the meeting room.");
-  YOU.el.classList.remove("sit");
-  await Promise.all(R.map((robot,i) => go(robot,{f:5,x:[34,72,112,146,214,250,290,326][i],sit:false})));
-  await go(YOU,{f:5,x:180,y:FYS[5]-48,sit:false});
-  R.forEach(robot => robot.el.classList.add("meet"));
-  await say(YOU,"Everyone is here in the meeting room. What should we do next?");
-  addLog(YOU, "All eight specialists gathered in the new meeting room.");
-  nowEl.textContent = "Meeting room: you and all eight workers are gathered. The TV lounge is next door.";
-}
-function submit() {
-  const text = inp.value.trim().slice(0, 12000);
-  if (!text) {
-    inp.focus();
-    return;
-  }
-  inp.value = "";
-  if (/^(?:all\s+workers?|all\s+robots?|everyone|team)\b.*\b(come|gather|meet|report)\b.*\b(office|meeting)\b/i.test(text)) {
-    gatherAllRobots();
-    return;
-  }
-  queue.push({text, id: ++taskId});
-  pump();
-}
-document.getElementById("go").addEventListener("click", submit);
-inp.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submit(); });
-
-/* Robots stay seated in their own offices whenever they are not collaborating. */
-R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
-
-const themeButton = document.getElementById("theme");
-const root = document.documentElement;
-function applyTheme(theme) {
-  root.dataset.theme = theme;
-  themeButton.textContent = theme === "dark" ? "Light mode" : "Dark mode";
-  themeButton.setAttribute("aria-label", `Switch to ${theme === "dark" ? "light" : "dark"} theme`);
-  try { localStorage.setItem("robot-office-theme", theme); } catch (e) {}
-}
-let preferredTheme = "light";
-try {
-  const storedTheme = localStorage.getItem("robot-office-theme");
-  preferredTheme = storedTheme === "dark" || storedTheme === "light"
-    ? storedTheme
-    : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-} catch (e) {}
-applyTheme(preferredTheme);
-themeButton.addEventListener("click", () => applyTheme(root.dataset.theme === "dark" ? "light" : "dark"));
-
-document.getElementById("clear").addEventListener("click", () => {
-  done = [];
-  try { localStorage.removeItem("robot-office-done"); } catch (e) {}
-  renderBoard();
-});
-
-renderBoard();
-showNow();
-function updateMemoryCore(memories) {
-  const stats = document.getElementById("memoryStats");
-  const facts = document.getElementById("memoryFacts");
-  if (!stats || !facts) return;
-  stats.textContent = memories.length + " saved memory records • shared across all 8 specialists";
-  facts.replaceChildren();
-  if (!memories.length) {
-    const empty = document.createElement("p");
-    empty.className = "note";
-    empty.textContent = "No long-term memories yet. Completed tasks will teach the office.";
-    facts.append(empty);
-    return;
-  }
-  memories.slice(0,8).forEach(memory => {
-    const item = document.createElement("div");
-    item.className = "memory-fact";
-    const title = document.createElement("b");
-    title.textContent = memory.title || "Saved memory";
-    const body = document.createElement("span");
-    body.textContent = String(memory.content || "").slice(0,180) + (String(memory.content || "").length > 180 ? "…" : "");
-    item.dataset.searchText = [memory.memory_type || "", memory.title || "", memory.content || "", ...(memory.tags || [])].join(" ").toLowerCase();
-    item.append(title,body);
-    facts.append(item);
-  });
-}
-
-let lastRestoredSnapshot = "";
-async function restoreSavedTasks() {
-  try {
-    const response = await fetch("/api/tasks");
-    const type = response.headers.get("content-type") || "";
-    if (!type.includes("application/json")) throw new Error("Database is not configured.");
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Could not load saved work.");
-    done = (data.tasks || []).filter(x => x.status === "completed").slice(0,20).map(x => ({
-      text: x.title || x.instruction, c: "#29b6f6", id: x.id, at: Date.parse(x.created_at || "") || Date.now()
-    }));
-    renderBoard();
-    updateMemoryCore(data.memories || []);
-    const history = document.getElementById("savedWorkList");
-    history.replaceChildren();
-    if (!data.tasks?.length) {
-      history.textContent = "No saved tasks yet. New work is queued for the background team.";
-    } else {
-      data.tasks.forEach(task => {
-        const details = document.createElement("details");
-        const summary = document.createElement("summary");
-        const shortTitle = String(task.title || task.instruction || "Untitled task");
-        const expectedStages = 3 + (Array.isArray(task.input_data?.selected_agents) ? task.input_data.selected_agents.length : 6);
-        summary.textContent = (shortTitle.length > 64 ? shortTitle.slice(0,61) + "…" : shortTitle) + " — " + task.status + (task.status === "queued" || task.status === "running" ? " (" + Math.min(expectedStages,Number(task.worker_next_agent||0)) + "/" + expectedStages + ")" : "");
-        const prompt = document.createElement("p");
-        prompt.textContent = String(task.instruction || "").slice(0,220) + (String(task.instruction || "").length > 220 ? "…" : "");
-        const output = document.createElement("pre");
-        output.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:13px;line-height:1.5";
-        const messages = (task.robot_task_messages || []).map(m => {
-          const who = m.robot_agents?.name || "Robot";
-          return who + ":\\n" + m.content;
-        }).join("\\n\\n");
-        output.textContent = task.result || (messages ? messages : "No output was saved for this task.");
-        details.dataset.searchText = [shortTitle, task.instruction || "", task.result || "", messages].join(" ").toLowerCase();
-        details.append(summary, prompt, output);
-        history.append(details);
-      });
-    }
-    const snapshot = (data.tasks || []).map(t => t.id + ":" + t.status + ":" + t.worker_next_agent + ":" + (t.robot_task_messages || []).length).join("|");
-    if (snapshot && snapshot !== lastRestoredSnapshot) addLog({n:"Database",c:"#29b6f6"}, "Synced " + data.tasks.length + " saved task(s) and memory.");
-    lastRestoredSnapshot = snapshot;
-  } catch (error) {
-    nowEl.textContent = "Database not connected: tasks cannot be saved yet.";
-  }
-}
-restoreSavedTasks();
-setInterval(restoreSavedTasks, 15000);
-
-const historySearch = document.getElementById("historySearch");
-historySearch.addEventListener("input", () => {
-  const query = historySearch.value.trim().toLowerCase();
-  const tasks = [...document.querySelectorAll("#savedWorkList details")];
-  const memories = [...document.querySelectorAll("#memoryFacts .memory-fact")];
-  let visibleTasks = 0, visibleMemories = 0;
-  for (const item of tasks) {
-    const match = !query || (item.dataset.searchText || "").includes(query);
-    item.hidden = !match;
-    if (match) visibleTasks++;
-  }
-  for (const item of memories) {
-    const match = !query || (item.dataset.searchText || "").includes(query);
-    item.hidden = !match;
-    if (match) visibleMemories++;
-  }
-  document.getElementById("searchStatus").textContent = query
-    ? "Found " + visibleTasks + " saved task(s) and " + visibleMemories + " memory record(s)."
-    : "Search across saved tasks, robot answers and memory.";
-});
-fetch("/api/status").then(async r => {
-  const type = r.headers.get("content-type") || "";
-  if (!type.includes("application/json")) throw new Error("The deployed server has no JSON /api/status route yet.");
-  const status = await r.json();
-  if (!r.ok) throw new Error(status.error || "Status request failed.");
-  const count = Array.isArray(status.providers) ? status.providers.length : 0;
-  const storage = status.persistence ? " • saved to Supabase" : " • " + status.database;
-  const workerSetup = status.backgroundWorkerSetup ? " • " + status.backgroundWorkerSetup : "";
-  nowEl.textContent = `NO-AI MODE active • rule-based workers • ${R.length} robots moving${storage}${workerSetup}`;
-}).catch(err => { nowEl.textContent = `Office animation is running • status check: ${err.message}`; });
-R.forEach(r => { r.sit = 1; r.el.classList.add("sit"); });
-requestAnimationFrame(tick);
+const $ = id => document.getElementById(id);
+let config = null, session = null, currentUser = null;
+const ITERATIONS = 600000;
+const enc = new TextEncoder(), dec = new TextDecoder("utf-8",{fatal:true});
+function b64(bytes){let s="";for(const b of new Uint8Array(bytes))s+=String.fromCharCode(b);return btoa(s)}
+function unb64(s){const x=atob(s);return Uint8Array.from(x,c=>c.charCodeAt(0))}
+function message(el,text,type=""){el.textContent=text;el.className="notice "+type}
+async function loadConfig(){const r=await fetch("/api/config",{cache:"no-store"});if(!r.ok)throw new Error("App configuration is missing. Set SUPABASE_ANON_KEY in Vercel.");config=await r.json();if(!config.url||!config.anonKey)throw new Error("Supabase configuration is incomplete.");}
+function authHeaders(token){return {"apikey":config.anonKey,"Authorization":"Bearer "+token,"Content-Type":"application/json"}}
+async function authRequest(path,body){const r=await fetch(config.url+"/auth/v1/"+path,{method:"POST",headers:{"apikey":config.anonKey,"Content-Type":"application/json"},body:JSON.stringify(body)});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.msg||d.message||d.error_description||d.error||"Authentication failed.");return d}
+async function signedIn(d){session=d;currentUser=d.user;if(!session.access_token||!currentUser)throw new Error("Supabase did not return a valid session.");$("authPanel").classList.add("hidden");$("workspace").classList.remove("hidden");$("signedInAs").textContent="Signed in as "+currentUser.email;sessionStorage.setItem("org_access_token",session.access_token);await refreshRecords()}
+async function signIn(){try{message($("authStatus"),"Signing in…");const d=await authRequest("token?grant_type=password",{email:$("email").value.trim(),password:$("authPassword").value});await signedIn(d);message($("authStatus"),"Signed in.","good")}catch(e){message($("authStatus"),e.message,"bad")}}
+async function signUp(){try{message($("authStatus"),"Creating account…");const d=await authRequest("signup",{email:$("email").value.trim(),password:$("authPassword").value});if(d.access_token){await signedIn(d);message($("authStatus"),"Account created and signed in.","good")}else{message($("authStatus"),"Account created. Check your email to confirm it, then sign in.","good")}}catch(e){message($("authStatus"),e.message,"bad")}}
+function signOut(){session=null;currentUser=null;sessionStorage.removeItem("org_access_token");$("workspace").classList.add("hidden");$("authPanel").classList.remove("hidden");$("authPassword").value="";$("records").replaceChildren()}
+async function rest(path,options={}){const r=await fetch(config.url+"/rest/v1/"+path,{...options,headers:{...authHeaders(session.access_token),...(options.headers||{})}});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(d?.message||d?.hint||"Supabase request failed ("+r.status+").");return d}
+async function deriveKey(pass,salt){const material=await crypto.subtle.importKey("raw",enc.encode(pass),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:ITERATIONS,hash:"SHA-256"},material,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function encryptText(plain,pass){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),key=await deriveKey(pass,salt);const cipher=await crypto.subtle.encrypt({name:"AES-GCM",iv,tagLength:128},key,enc.encode(plain));return "ORG1:"+b64(salt)+":"+b64(iv)+":"+b64(cipher)}
+async function decryptText(code,pass){const p=code.trim().split(":");if(p.length!==4||p[0]!=="ORG1")throw new Error("Invalid ORG1 format.");const salt=unb64(p[1]),iv=unb64(p[2]),cipher=unb64(p[3]);if(salt.length!==16||iv.length!==12||cipher.length<16)throw new Error("Invalid ORG1 fields.");const key=await deriveKey(pass,salt);const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv,tagLength:128},key,cipher);return dec.decode(plain)}
+async function encryptAndSave(){const title=$("recordTitle").value.trim(),plain=$("plainText").value,pass=$("encPass").value;if(!title||!plain||!pass){message($("encStatus"),"Enter a title, text, and encryption passphrase.","bad");return}if(pass.length<14){message($("encStatus"),"Use a passphrase of at least 14 characters for stronger protection.","bad");return}const b=$("encryptBtn");b.disabled=true;try{const code=await encryptText(plain,pass);$("encryptedOutput").value=code;await rest("org_encrypted_records",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify({user_id:currentUser.id,title,encrypted_payload:code})});message($("encStatus"),"Encrypted and saved. Supabase received ciphertext only.","good");$("plainText").value="";$("encPass").value="";await refreshRecords()}catch(e){message($("encStatus"),"Encryption succeeded locally, but saving failed: "+e.message,"bad")}finally{b.disabled=false}}
+async function decryptNow(){try{const result=await decryptText($("decryptCode").value,$("decPass").value);$("decryptedOutput").value=result;message($("decStatus"),"Decryption successful.","good")}catch(e){$("decryptedOutput").value="";message($("decStatus"),"Could not decrypt. Check the code and passphrase.","bad")}}
+async function refreshRecords(){if(!session)return;try{const rows=await rest("org_encrypted_records?select=id,title,created_at,encrypted_payload&order=created_at.desc&limit=100");const root=$("records");root.replaceChildren();if(!rows.length){root.textContent="No encrypted records saved yet.";return}for(const row of rows){const item=document.createElement("div");item.className="record";const info=document.createElement("div");const strong=document.createElement("strong");strong.textContent=row.title;const small=document.createElement("small");small.textContent=new Date(row.created_at).toLocaleString();info.append(strong,small);const actions=document.createElement("div");actions.className="row";const open=document.createElement("button");open.className="ghost";open.textContent="Load";open.onclick=()=>{$("decryptCode").value=row.encrypted_payload;$("decryptCode").scrollIntoView({behavior:"smooth",block:"center"})};const del=document.createElement("button");del.className="danger";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this encrypted record?"))return;try{await rest("org_encrypted_records?id=eq."+encodeURIComponent(row.id),{method:"DELETE"});await refreshRecords();message($("recordsStatus"),"Record deleted.","good")}catch(e){message($("recordsStatus"),e.message,"bad")}};actions.append(open,del);item.append(info,actions);root.append(item)}}catch(e){message($("recordsStatus"),e.message,"bad")}}
+$("signIn").onclick=signIn;$("signUp").onclick=signUp;$("signOut").onclick=signOut;$("encryptBtn").onclick=encryptAndSave;$("decryptBtn").onclick=decryptNow;$("refreshRecords").onclick=refreshRecords;
+$("copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText($("encryptedOutput").value);message($("encStatus"),"Encrypted code copied.","good")}catch{message($("encStatus"),"Clipboard unavailable. Select and copy the code manually.","bad")}};
+(async()=>{try{if(!window.crypto?.subtle)throw new Error("Web Crypto requires HTTPS or localhost.");await loadConfig();message($("authStatus"),"Supabase is configured. Sign in to continue.","good")}catch(e){message($("authStatus"),e.message,"bad")}})();
 </script>
 </body>
 </html>
