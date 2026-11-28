@@ -32,3 +32,5 @@ Open http://localhost:3000. Set SUPABASE_ANON_KEY in the local environment first
 
 ## Password safety
 This is reversible encryption for messages and secrets that must later be decrypted. Do not use it to store login passwords. Store account passwords using Supabase Auth's password hashing.
+
+The Vercel project must have `SUPABASE_ANON_KEY` set for production, preview, and development; this is the Supabase public anon key (never the service-role key).
