@@ -57,6 +57,7 @@ details{margin-top:18px;color:var(--muted);font-size:.92rem}summary{cursor:point
 </section>
 
 <div id="workspace" hidden>
+<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button type="button" id="signout" class="secondary">Sign out</button></div>
 <div class="modes" id="modes" data-mode="encrypt" role="group" aria-label="Mode">
 <button type="button" id="m-encrypt" aria-pressed="true">Encrypt</button><button type="button" id="m-decrypt" aria-pressed="false">Decrypt</button>
 </div>
@@ -134,7 +135,6 @@ function init(){if(!(window.crypto&&crypto.subtle)){$("login").disabled=true;say
 $("m-encrypt").addEventListener("click",()=>setMode("encrypt"));$("m-decrypt").addEventListener("click",()=>setMode("decrypt"));$("go").addEventListener("click",run);$("copy").addEventListener("click",copyResult);$("clear").addEventListener("click",clearAll);$("login").addEventListener("click",organizationLogin);$("org-password").addEventListener("keydown",e=>{if(e.key==="Enter")organizationLogin()});$("show-org-password").addEventListener("click",()=>{const show=$("org-password").type==="password";$("org-password").type=show?"text":"password";$("show-org-password").textContent=show?"Hide":"Show"});$("pass").addEventListener("input",e=>$("meter").textContent=describePassphrase(e.target.value));$("toggle").addEventListener("click",()=>{const show=$("pass").type==="password";$("pass").type=show?"text":"password";$("pass2").type=show?"text":"password";$("toggle").textContent=show?"Hide":"Show";$("toggle").setAttribute("aria-pressed",String(show))});$("save-record").addEventListener("click",saveRecord);$("refresh-records").addEventListener("click",refreshRecords);
 $("signout");}
 $("login").addEventListener("contextmenu",e=>e.preventDefault());
-$("login").insertAdjacentHTML("afterend",'<button type="button" id="signout" class="secondary wide" hidden>Sign out</button>');
 $("signout").addEventListener("click",signOut);
 init();
 (async()=>{try{await loadConfig();say($("login-status"),"Secure connection ready. Enter the organization password.","good")}catch(e){say($("login-status"),e.message,"bad")}})();
