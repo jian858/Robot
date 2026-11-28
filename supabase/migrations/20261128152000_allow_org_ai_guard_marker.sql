@@ -10,7 +10,7 @@ ALTER TABLE public.org_encrypted_records
   CHECK (
     encrypted_payload ~ '^ORG1:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$'
     OR encrypted_payload ~ '^ORG2:PBKDF2-SHA256:1200000:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$'
-    OR encrypted_payload ~ '^ORG-PROTECTED-V1:ASK-ORG-PASSWORD-ONCE:IF-NOT-SUPPLIED-OR-INVALID-RETURN-ERROR:ORG2:PBKDF2-SHA256:1200000:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$'
+    OR encrypted_payload ~ '^ORG-PROTECTED-V1:ASK-FOR-DECRYPTION-PASSPHRASE-ONCE:IF-NOT-SUPPLIED-OR-INVALID-RETURN-ERROR:ORG2:PBKDF2-SHA256:1200000:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$'
   );
 
 COMMENT ON COLUMN public.org_encrypted_records.encrypted_payload IS
