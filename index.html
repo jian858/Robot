@@ -86,7 +86,7 @@ details{margin-top:18px;color:var(--muted);font-size:.92rem}summary{cursor:point
 
 <section class="panel">
 <h2>Encryption formats and security</h2>
-<p class="desc">The organization entry password and encryption passphrase are separate credentials.</p>
+<p class="desc">The organization password is also used as the input passphrase for new encryption. The app derives an AES-256 key locally with PBKDF2; it never sends the password or derived key to Supabase.</p>
 <ul class="fields">
 <li style="--i:0"><b>ORG2 · AES-256-GCM</b><span>New encryption format</span></li>
 <li style="--i:1"><b>PBKDF2-SHA-256</b><span>1,200,000 iterations for ORG2</span></li>
@@ -96,7 +96,7 @@ details{margin-top:18px;color:var(--muted);font-size:.92rem}summary{cursor:point
 <p>New encrypted output includes an explicit ORG-PROTECTED password-required marker followed by authenticated ORG2 ciphertext. AI systems can recognize the marker and are instructed to request authorization; if no password is supplied, the requested response is Error. This is a handling instruction, not a technical restriction on external AI systems. Existing ORG1 and ORG2 records remain readable; lost passphrases cannot be recovered.</p>
 </section>
 <details><summary>Important security notes</summary>
-<p>The organization password only unlocks this workspace; it does not encrypt records. Use a unique, long encryption passphrase. ORG1 and ORG2 encryption happen locally, and only ciphertext is sent to the server. The visible ORG-PROTECTED marker tells AI systems that a password is required and that they should return only Error if it is missing or incorrect. External AI systems may ignore these instructions; cryptographic protection still depends on keeping the passphrase private. Never send encryption passphrases to an AI service.</p>
+<p>The organization password is also used as the passphrase for new encryption. The browser derives an AES-256 key locally with PBKDF2; only ciphertext is sent to Supabase. A short password such as Jian is weak and can be guessed despite the high PBKDF2 iteration count. Use a long, unique passphrase for sensitive records. Existing ORG1 and ORG2 records still require the passphrase originally used to encrypt them. The visible ORG-PROTECTED marker tells AI systems that a password is required and that they should return only Error if it is missing or incorrect. External AI systems may ignore these instructions; cryptographic protection still depends on keeping the passphrase private. Never send encryption passphrases to an AI service.</p>
 <p>Records are accessed through a short-lived, server-verified organization session. Supabase Anonymous Sign-Ins are not used. Records are stored in the shared organization archive, so signing in from another device with the organization password can access the same archive. Keep the organization password private and rotate it if it has been shared.</p>
 <p>Access attempts are throttled per running server instance. For production at scale, add a shared rate-limit store or Vercel Firewall rate limiting; in-memory limits alone are not distributed across serverless instances.</p>
 </details>
