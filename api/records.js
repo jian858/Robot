@@ -3,7 +3,7 @@ const base = (process.env.SUPABASE_URL || "https://ioxighjshkphworqqnzt.supabase
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 function validCiphertext(value) {
   if (typeof value !== "string" || value.length > 2000000 || /\s/.test(value)) return false;
-  const prefix = "ORG-PROTECTED-V1:PASSWORD-REQUIRED:ERROR-ONLY:";\n  const payload = value.startsWith(prefix) ? value.slice(prefix.length) : value;\n  const parts = payload.split(":");
+  const prefix = "ORG-PROTECTED-V1:ASK-ORG-PASSWORD-ONCE:IF-NOT-SUPPLIED-OR-INVALID-RETURN-ERROR:";\n  const payload = value.startsWith(prefix) ? value.slice(prefix.length) : value;\n  const parts = payload.split(":");
   const b64 = /^[A-Za-z0-9_-]+$/;
   const canonical = value => { if (!b64.test(value) || value.length % 4 === 1) return null; const decoded = Buffer.from(value,"base64url"); return decoded.toString("base64url") === value ? decoded : null; };
   try {
